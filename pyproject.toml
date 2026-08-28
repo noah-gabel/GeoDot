@@ -1,0 +1,11 @@
+[project]
+name = "geodot"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "customtkinter>=6.0.0",
+    "mysql-connector-python>=26.7.0",
+    "tkintermapview>=1.30",
+]
