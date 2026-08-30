@@ -1,11 +1,11 @@
 [project]
 name = "geodot"
 version = "0.1.0"
-description = "Add your description here"
+description = "A Geoguessr like game, but instead of being in street-view you have to guess city locations by their name"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "customtkinter>=6.0.0",
-    "mysql-connector-python>=26.7.0",
+    "python-dotenv>=1.2.3",
     "tkintermapview>=1.30",
 ]

@@ -1,5 +1,6 @@
 import sqlite3
 from contextlib import closing
+from models import Difficulty
 
 
 class Database:
@@ -9,13 +10,13 @@ class Database:
     def _get_connection(self):
         return sqlite3.connect(self.db_path)
 
-    def get_random_cities(self, mode : str, amount: int = 10,) -> list[tuple[str, str, float, float]] | str:
+    def get_random_cities(self, difficulty : Difficulty, amount: int = 10,) -> list[tuple[str, str, float, float]]:
         # closes the connection no matter the outcome
         with closing(self._get_connection()) as connection:
             cursor = connection.cursor()
 
-            match mode:
-                case "easy":
+            match difficulty:
+                case Difficulty.EASY:
                     query="""
                         SELECT ort.ONR, ort.Name, ort.Breite, ort.Laenge
                         FROM ort, land
@@ -25,7 +26,7 @@ class Database:
                         ORDER BY RANDOM()
                         LIMIT ?
                     """
-                case "standard":
+                case Difficulty.STANDARD:
                         query="""
                             SELECT ort.ONR, ort.Name, ort.Breite, ort.Laenge
                             FROM ort, land
@@ -35,7 +36,7 @@ class Database:
                             ORDER BY RANDOM()
                             LIMIT ?
                         """
-                case "hard":
+                case Difficulty.HARD:
                     query="""
                         SELECT ort.ONR, ort.Name, ort.Breite, ort.Laenge
                         FROM ort, land, kontinent
@@ -46,7 +47,7 @@ class Database:
                         ORDER BY RANDOM()
                         LIMIT ?
                     """
-                case "extreme":
+                case Difficulty.EXTREME:
                     query= """
                         SELECT ort.ONR, ort.Name, ort.Breite, ort.Laenge
                         FROM ort, land, kontinent
@@ -57,7 +58,7 @@ class Database:
                         ORDER BY RANDOM()
                         LIMIT ?
                     """
-                case "impossible":
+                case Difficulty.IMPOSSIBLE:
                     query = """
                         SELECT ONR, Name, Breite, Laenge
                         FROM ort
@@ -66,7 +67,7 @@ class Database:
                         LIMIT ?
                     """
                 case _:
-                    return "ERROR: Could not match difficulty level"
+                    raise ValueError(f'Unknown difficulty: {difficulty}')
 
             cursor.execute(query, (amount, ))
             return cursor.fetchall()

@@ -1,0 +1,64 @@
+from database import Database
+from enum import Enum, auto
+from models import City, Guess, Coordinates, Difficulty
+from score import haversine_distance, calculate_score
+
+class GameState(Enum):
+    STARTING = auto()       #idle screen with difficulties and start button
+    GUESSING = auto()       #playing and looking for a guess
+    SHOWING_RESULT = auto() #showing the results of the current round and starting the next one
+    FINISHED = auto()       #show end results and give the ability to play again
+
+
+class Manager():
+    def __init__(self, database: Database):
+        self.database = database
+        self.game_state = GameState.STARTING
+        self.total_score: int = 0
+
+    def start_game(self, difficulty : Difficulty):
+        try:
+            self.difficulty = difficulty
+
+            city_data = self.database.get_random_cities(difficulty)
+            self.cities: list[City] = [City(city_ONR=city_ONR,name=name, coords=Coordinates(lat=latitude, lon=longitude)) for (city_ONR, name, longitude, latitude) in city_data]
+
+            self.results: list[Guess] = []
+
+            self.current_round_index : int = 0
+            self.game_state = GameState.GUESSING
+        
+        except Exception as e:
+            #TODO add a logger or at least print/show a valuable error message
+            print(f"Error occurred: {e}")
+
+
+    def submit_guess(self, coordinates: Coordinates):
+        distance = haversine_distance(
+            guess_coordinates=coordinates, 
+            city_coordinates=self.cities[self.current_round_index].coords
+        )
+
+        self.round_score = calculate_score(distance_km=distance, difficulty=self.difficulty)
+        self.total_score += self.round_score
+
+        guess = Guess(
+            city=self.cities[self.current_round_index], 
+            coords=coordinates, 
+            distance=distance, 
+            score=self.round_score
+        )
+        self.results.append(guess)
+        
+        self.game_state = GameState.SHOWING_RESULT
+
+    def next_round(self):
+        if self.current_round_index >= len(self.cities) -1:
+            self.game_state = GameState.FINISHED
+            return
+
+        self.current_round_index += 1
+        self.game_state = GameState.GUESSING
+        
+        
+

@@ -1,28 +1,28 @@
 import customtkinter as ctk
 from tkintermapview import TkinterMapView
+from config import API_KEY, FG_COLOR
 
-class App(ctk.CTk):
+class GameScreen(ctk.CTkFrame):
+    def __init__(self, master, round: ctk.StringVar, current_city: ctk.StringVar, current_score : ctk.IntVar, guess_action):
+        super().__init__(master, fg_color=FG_COLOR)
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        # define StringVars and IntVars which update according to the parents variables
+        self.round = round
+        self.current_city = current_city
+        self.current_score = current_score
 
-        self.title("GeoDot")
-        self.geometry(str(self.winfo_screenwidth()) + "x" + str(self.winfo_screenheight()))
-        self.configure(fg_color="#1e1e2e")
+        # define guess button callback
+        self.guess_action = guess_action
 
-        self.current_city = ctk.StringVar(value="München")
-        self.round = ctk.StringVar(value="1/10")
-        self.current_score = ctk.IntVar(value=1000)
+        self._setup_ui()
 
+    def _setup_ui(self):
         self.grid_rowconfigure(0, weight=0)
         self.grid_rowconfigure(1, weight=1)
         self.grid_rowconfigure(2, weight=0)
 
         self.grid_columnconfigure(0, weight=1)
 
-        self.setup_ui()
-
-    def setup_ui(self):
         self._setup_map_widget()
         self._setup_top_hud()
         self._setup_bottom_hud()
@@ -30,12 +30,12 @@ class App(ctk.CTk):
     def _setup_map_widget(self):
         self.map = TkinterMapView(self, corner_radius=0)
         self.map.grid(row=1, column=0, sticky="nswe")
-
-        self.map.set_tile_server("https://a.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}.png")
+        
+        self.map.set_tile_server(f"https://a.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{{z}}/{{x}}/{{y}}.png?key={API_KEY}")
 
     def _setup_top_hud(self):
         #background frame
-        top_bar = ctk.CTkFrame(self, fg_color="#1e1e2e", height=75)
+        top_bar = ctk.CTkFrame(self, fg_color=FG_COLOR, height=75)
         top_bar.grid(row=0, column=0, sticky="ew", padx=100)
 
         top_bar.grid_propagate(False)
@@ -56,11 +56,13 @@ class App(ctk.CTk):
         ctk.CTkLabel(round_frame, text="ROUND", text_color="#5AB1FC", font=("Segoe UI", 10, "bold")).pack()
         ctk.CTkLabel(round_frame, textvariable=self.round, font=("Segoe UI", 20, "bold")).pack()
 
+        #display city name
         city_frame = ctk.CTkFrame(top_bar, fg_color="transparent")
         city_frame.grid(row=0, column=3)
         ctk.CTkLabel(city_frame, text="FIND CITY", font=("Segoe UI", 10, "bold"), text_color="#5AB1FC").pack()
         ctk.CTkLabel(city_frame, textvariable=self.current_city, font=("Segoe UI", 20, "bold")).pack()
 
+        # display total score
         score_frame = ctk.CTkFrame(top_bar, fg_color="transparent")
         score_frame.grid(row=0, column=5)
         ctk.CTkLabel(score_frame, text="SCORE", font=("Segoe UI", 10, "bold"), text_color="#5AB1FC").pack()
@@ -68,7 +70,7 @@ class App(ctk.CTk):
 
     def _setup_bottom_hud(self):
         #background frame
-        bottom_bar = ctk.CTkFrame(self, fg_color="#1e1e2e", height=75)
+        bottom_bar = ctk.CTkFrame(self, fg_color=FG_COLOR, height=75)
         bottom_bar.grid(row=2, column=0, sticky="ew")
         bottom_bar.pack_propagate(False)
 
@@ -80,7 +82,7 @@ class App(ctk.CTk):
             fg_color="#dd2476",
             hover_color="#ff4e9d",
             height=50,
-            command=self.guess)
+            command=self.guess_action)
 
         self.guess_button.pack(expand=True)
 
@@ -90,8 +92,6 @@ class App(ctk.CTk):
     def _enable_guess_button(self):
         self.guess_button.configure(state="normal", fg_color="#dd2476")
 
-    def guess(self):
-        print("clicked")
 
-    def start(self):
-        self.mainloop()
+    def show(self):
+        self.pack(fill="both", expand=True)
