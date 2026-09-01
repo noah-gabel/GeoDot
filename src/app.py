@@ -7,7 +7,7 @@ class App(ctk.CTk):
 
     def __init__(self, game_manager: Manager, *args, **kwargs):
         super().__init__(*args, **kwargs, fg_color=FG_COLOR)
-
+        self.game_manager = game_manager
         self.title("GeoDot")
 
         # change the window to fullscreen
