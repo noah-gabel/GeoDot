@@ -1,79 +1,16 @@
 import customtkinter as ctk
-from config import (FG_COLOR, FONT, INTRO_HEADING_ACCENT_COLOR, TEXT_COLOR, TEXT_DIM_COLOR, HEADING_TEXT_COLOR, CARD_BORDER_COLOR, CARD_FG_COLOR, GERMANY_DIFFICULTY_COLOR, EUROPE_DIFFICULTY_COLOR, WORLDWIDE_DIFFICULTY_COLOR, CARD_INNER_PADX, CARD_WIDTH, UNSELECTED_DIFFICULTY_COLOR)
+from config import (FG_COLOR, FONT, INTRO_HEADING_ACCENT_COLOR, TEXT_COLOR, TEXT_DIM_COLOR, HEADING_TEXT_COLOR, CARD_BORDER_COLOR, CARD_FG_COLOR, GERMANY_DIFFICULTY_COLOR, EUROPE_DIFFICULTY_COLOR, WORLDWIDE_DIFFICULTY_COLOR, CARD_INNER_PADX, CARD_WIDTH, UNSELECTED_DIFFICULTY_COLOR, CARD_HOVER_FG_COLOR, CARD_SELECT_BORDER_COLOR)
 from models import Difficulty
 
-class MenuScreen(ctk.CTkFrame):
-    def __init__(self, master, start_game):
-        super().__init__(master, fg_color=FG_COLOR, )
-
-        self._setup_ui()
-
-    def _setup_ui(self):
-        self.grid_columnconfigure(0, weight=1)
-
-        # configuring row 0 and 6 with weight 1 to push the main info to teh center
-        self.grid_rowconfigure(0, weight=1)
-        self.grid_rowconfigure(6, weight=1)
-
-        self._setup_heading()
-        self._setup_difficulty_cards()
-
-    def _setup_heading(self):
-        title = ctk.CTkFrame(self, fg_color="transparent")
-        title.grid(row=1, column=0, pady=(0, 8))
-
-        # separate the title in order to color only the Dot part
-        ctk.CTkLabel(
-            title, 
-            text="Geo", 
-            font=(FONT, 52, "bold"), 
-            text_color=TEXT_COLOR, 
-            padx=0 
-        ).pack(side="left")
-        ctk.CTkLabel(
-            title, 
-            text="Dot", 
-            font=(FONT, 52, "bold"), 
-            text_color=INTRO_HEADING_ACCENT_COLOR, 
-            padx=0, 
-        ).pack(side="left")
-
-        # description
-        ctk.CTkLabel( 
-            self, 
-            text="place your marker as close as you can to the asked city", 
-            font=(FONT, 15), 
-            text_color=TEXT_DIM_COLOR 
-        ).grid(row=2, column=0, pady=(0, 40))
-
-        # difficulty cards heading
-        ctk.CTkLabel(
-            self, 
-            text="DIFFICULTY", 
-            font=(FONT, 20, "bold"),
-            text_color=HEADING_TEXT_COLOR 
-        ).grid(row=3, column=0, pady=(0, 12))
-
-    def _setup_difficulty_cards(self):
-        card_frame = ctk.CTkFrame(self, fg_color="transparent")
-        card_frame.grid(row=4, column=0)
-
-        card_frame.grid_rowconfigure(0, weight=1)
-        card_frame.grid_columnconfigure(len(Difficulty) - 1)
-
-        for index, difficulty, in enumerate(Difficulty):
-            DifficultyCard(card_frame, difficulty=difficulty, on_click="").grid(row=0, column=index, padx=10)
-
-    def show(self):
-        self.pack(fill="both", expand=True)
-
 class DifficultyCard(ctk.CTkFrame):
-    def __init__(self, master, difficulty: Difficulty, on_click, border_width=1, corner_radius=10):
+    def __init__(self, master, difficulty: Difficulty, on_click_callback, border_width=1, corner_radius=10):
         super().__init__(master=master, fg_color=CARD_FG_COLOR, border_color=CARD_BORDER_COLOR, border_width=border_width, corner_radius=corner_radius)
 
         self.difficulty = difficulty
-
+        self.on_click_callback = on_click_callback
         self._setup_ui()
+
+        self._bind_actions_recursive(self)
 
     def _setup_ui(self):
         self.grid_propagate(False)
@@ -134,7 +71,6 @@ class DifficultyCard(ctk.CTkFrame):
         for index in range(len(Difficulty)):
             if index >= level:
                 scope_color = UNSELECTED_DIFFICULTY_COLOR
-            print(index)
             ctk.CTkFrame(bar_frame, corner_radius=10, fg_color=scope_color, height=10).grid(row=0, column=index, sticky="ew", padx=3)    
 
     def _setup_text(self, scope: str, scope_color:str, title: str, description:str):
@@ -163,3 +99,109 @@ class DifficultyCard(ctk.CTkFrame):
             justify="left",
             wraplength= CARD_WIDTH - 2 * CARD_INNER_PADX
         ).grid(row=3, column=0, sticky="new", padx=CARD_INNER_PADX, pady=4)
+
+    def _bind_actions_recursive(self, widget):
+        """
+        recursively bind every action to every child
+        without this the click or hover would only activate when clicking on the main frame and not when clicking on labels or other widgets inside the main frame
+        """
+
+        # use add="+" in order to not override existing binds
+        widget.bind("<Button-1>", self._on_click, add="+")
+        widget.bind("<Enter>", self._on_enter, add="+")
+        widget.bind("<Leave>", self._on_exit, add="+")
+
+        for child in widget.winfo_children():
+            self._bind_actions_recursive(child)
+
+    def _on_click(self, _event):
+        self.on_click_callback(clicked_card=self)
+
+        # return "break" to stop tkinter from passing the event to the parent and prevent double registers for one click
+        return "break"
+
+    def _on_enter(self, _event):
+        self.configure(fg_color=CARD_HOVER_FG_COLOR)
+        self.configure(cursor="hand2")
+
+    def _on_exit(self, _event):
+        self.configure(fg_color=CARD_FG_COLOR)
+        self.configure(cursor="")
+
+class MenuScreen(ctk.CTkFrame):
+    def __init__(self, master, start_game):
+        super().__init__(master, fg_color=FG_COLOR, )
+
+        self.cards: list[DifficultyCard] = []
+        self.difficulty: Difficulty
+        self._setup_ui()
+
+    def _setup_ui(self):
+        self.grid_columnconfigure(0, weight=1)
+
+        # configuring row 0 and 6 with weight=1 to push the main info to the center
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_rowconfigure(6, weight=1)
+
+        self._setup_heading()
+        self._setup_difficulty_cards()
+
+    def _setup_heading(self):
+        title = ctk.CTkFrame(self, fg_color="transparent")
+        title.grid(row=1, column=0, pady=(0, 8))
+
+        # separate the title in order to color only the Dot part
+        ctk.CTkLabel(
+            title, 
+            text="Geo", 
+            font=(FONT, 52, "bold"), 
+            text_color=TEXT_COLOR, 
+            padx=0 
+        ).pack(side="left")
+        ctk.CTkLabel(
+            title, 
+            text="Dot", 
+            font=(FONT, 52, "bold"), 
+            text_color=INTRO_HEADING_ACCENT_COLOR, 
+            padx=0, 
+        ).pack(side="left")
+
+        # description
+        ctk.CTkLabel( 
+            self, 
+            text="place your marker as close as you can to the asked city", 
+            font=(FONT, 15), 
+            text_color=TEXT_DIM_COLOR 
+        ).grid(row=2, column=0, pady=(0, 40))
+
+        # difficulty cards heading
+        ctk.CTkLabel(
+            self, 
+            text="DIFFICULTY", 
+            font=(FONT, 20, "bold"),
+            text_color=HEADING_TEXT_COLOR 
+        ).grid(row=3, column=0, pady=(0, 20))
+
+    def _setup_difficulty_cards(self):
+        card_frame = ctk.CTkFrame(self, fg_color="transparent")
+        card_frame.grid(row=4, column=0)
+
+        card_frame.grid_rowconfigure(0, weight=1)
+        card_frame.grid_columnconfigure(len(Difficulty) - 1, weight=0)
+
+        for index, difficulty, in enumerate(Difficulty):
+            DifficultyCard(card_frame, difficulty=difficulty, on_click_callback=self._on_card_select).grid(row=0, column=index, padx=10)
+
+    def _on_card_select(self, clicked_card: DifficultyCard):
+        for card in self.cards:
+            card.configure(border_color=CARD_BORDER_COLOR)
+
+        if clicked_card not in self.cards:
+            self.cards.append(clicked_card)
+
+        clicked_card.configure(border_color=CARD_SELECT_BORDER_COLOR)
+        self.difficulty = clicked_card.difficulty
+
+    def show(self):
+        self.pack(fill="both", expand=True)
+
