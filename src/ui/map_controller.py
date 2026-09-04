@@ -85,12 +85,9 @@ class MapController(TkinterMapView):
             return "break"  # ends the bind tag chain = every binding does not run
         return None         # bindings follow through like normal
 
-    def _set_input_blocked(self, blocked: bool):
+    def set_input_blocked(self, blocked: bool):
         self.input_blocked = blocked
-        if blocked:
-            self._disable_guess_button()
-        else:
-            self._enable_guess_button()
+        self._disable_guess_button()
         self.pressed_pos = None # set position to None: if a user pressed a button exactly when the movement gets locked it could cause problems
 
     def _cleanup_guess_marker(self):
@@ -119,10 +116,10 @@ class MapController(TkinterMapView):
         self.delete_all_path()
 
         # allow interaction for the next round
-        self._set_input_blocked(False)
+        self.set_input_blocked(False)
 
     def show_guess_result(self, guess: Guess):
-        self._set_input_blocked(True)
+        self.set_input_blocked(True)
 
         #prevents a city marker being placed extra when the function is called twice in a round
         self._cleanup_city_marker()

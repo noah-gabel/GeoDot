@@ -20,32 +20,38 @@ class Guess:
 
 class Difficulty(Enum):
     EASY = (
+        0,
         90, 
         Coordinates(lat=50.708605, lon=10.287957), 
         7
     )
     STANDARD = (
+        1,
         90, 
         Coordinates(lat=50.708605, lon=10.287957), 
         7
     )
     HARD = (
+        2,
         550, 
         Coordinates(lat=47.721280, lon=11.604708), 
         5
     )
     EXTREME = (
+        3,
         550, 
         Coordinates(lat=47.721280, lon=11.604708), 
         5
     )
     IMPOSSIBLE = (
+        4,
         1492, 
         Coordinates(lat=47.721280, lon=11.604708), 
         4
     )
 
-    def __init__(self, decay_km, reset_coordinates: Coordinates, reset_zoom: int):
+    def __init__(self, id:int, decay_km: int, reset_coordinates: Coordinates, reset_zoom: int):
+        self.id = id # the id is required so that python can differentiate between each enum variant
         self.decay_km = decay_km
         self.reset_coordinates = reset_coordinates
         self.reset_zoom = reset_zoom

@@ -16,7 +16,7 @@ class Manager():
         self.game_state = GameState.STARTING
         self.total_score: int = 0
 
-    def start_game(self, difficulty : Difficulty):
+    def start_game(self, difficulty : Difficulty) -> GameState:
         try:
             self.difficulty = difficulty
 
@@ -32,8 +32,10 @@ class Manager():
             #TODO add a logger or at least print/show a valuable error message
             print(f"Error occurred: {e}")
 
+        return self.game_state
 
-    def submit_guess(self, coordinates: Coordinates):
+
+    def submit_guess(self, coordinates: Coordinates) -> GameState:
         distance = haversine_distance(
             guess_coordinates=coordinates, 
             city_coordinates=self.cities[self.current_round_index].coords
@@ -51,14 +53,15 @@ class Manager():
         self.results.append(guess)
         
         self.game_state = GameState.SHOWING_RESULT
+        return self.game_state
 
-    def next_round(self):
+    def next_round(self) -> GameState:
         if self.current_round_index >= len(self.cities) -1:
             self.game_state = GameState.FINISHED
-            return
+            return self.game_state
 
         self.current_round_index += 1
         self.game_state = GameState.GUESSING
-        
+        return self.game_state
         
 
