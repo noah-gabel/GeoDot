@@ -2,8 +2,8 @@ import customtkinter as ctk
 from tkintermapview import TkinterMapView
 from config import FG_COLOR, FONT, HEADING_TEXT_COLOR, GUESS_BUTTON_DISABLED_FG_COLOR, GUESS_BUTTON_FG_COLOR, GUESS_BUTTON_HOVER_FG_COLOR
 from ui.map_controller import MapController
-from models import Difficulty, Guess, Coordinates
-class GameScreen(ctk.CTkFrame):
+from models import Difficulty, Guess, Coordinates, Screen
+class GameScreen(Screen):
     def __init__(self, master, round: ctk.StringVar, current_city: ctk.StringVar, current_score : ctk.IntVar, guess_action):
         super().__init__(master, fg_color=FG_COLOR)
 
@@ -100,6 +100,3 @@ class GameScreen(ctk.CTkFrame):
 
     def show_results(self, guess: Guess):
         self.map.show_guess_result(guess=guess)
-
-    def show(self):
-        self.pack(fill="both", expand=True)

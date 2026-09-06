@@ -21,7 +21,7 @@ class Manager():
             self.difficulty = difficulty
 
             city_data = self.database.get_random_cities(difficulty)
-            self.cities: list[City] = [City(city_ONR=city_ONR,name=name, coords=Coordinates(lat=latitude, lon=longitude)) for (city_ONR, name, longitude, latitude) in city_data]
+            self.cities: list[City] = [City(city_ONR=city_ONR,name=name, coords=Coordinates(lat=latitude, lon=longitude)) for (city_ONR, name, latitude, longitude) in city_data]
 
             self.results: list[Guess] = []
 
@@ -64,4 +64,15 @@ class Manager():
         self.game_state = GameState.GUESSING
         return self.game_state
         
+    def get_game_screen_data(self) -> dict:
+        return {
+            "city_name": self.cities[self.current_round_index].name,
+            "round": f"{self.current_round_index + 1}/{len(self.cities)}",
+            "score": self.total_score
+        }
 
+    def get_current_guess(self) -> Guess:
+        if self.current_round_index < 0 or len(self.results) < 1:
+            raise ValueError("you should only call this function after submitting a guess")
+
+        return self.results[self.current_round_index]

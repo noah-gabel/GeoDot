@@ -1,5 +1,7 @@
 from dataclasses import dataclass
 from enum import Enum, auto
+from typing import Any, Tuple
+import customtkinter as ctk
 @dataclass(frozen=True)
 class Coordinates:
     lat: float
@@ -82,3 +84,12 @@ class BoundingBox:
         )
 
 
+class Screen(ctk.CTkFrame):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def show(self):
+        self.pack(fill="both", expand=True)
+
+    def hide(self):
+        self.pack_forget()
