@@ -1,6 +1,7 @@
 import customtkinter as ctk
 from config import (FG_COLOR, FONT, INTRO_HEADING_ACCENT_COLOR, TEXT_COLOR, TEXT_DIM_COLOR, HEADING_TEXT_COLOR, CARD_BORDER_COLOR, CARD_FG_COLOR, GERMANY_DIFFICULTY_COLOR, EUROPE_DIFFICULTY_COLOR, WORLDWIDE_DIFFICULTY_COLOR, CARD_INNER_PADX, CARD_WIDTH, UNSELECTED_DIFFICULTY_COLOR, CARD_HOVER_FG_COLOR, CARD_SELECT_BORDER_COLOR, START_BUTTON_DISABLED_FG_COLOR, START_BUTTON_FG_COLOR, START_BUTTON_HOVER_FG_COLOR)
-from models import Difficulty, Screen
+from models import Difficulty
+from ui.screen import Screen
 
 class DifficultyCard(ctk.CTkFrame):
     def __init__(self, master, difficulty: Difficulty, on_click_callback, border_width=2, corner_radius=20):
@@ -39,13 +40,13 @@ class DifficultyCard(ctk.CTkFrame):
                 title = "Extreme"
                 scope = "EUROPE"
                 scope_color = EUROPE_DIFFICULTY_COLOR
-                description = "European cities with more than 50.000 citizens"
+                description = "European cities with more than 100.000 citizens"
                 level = 4
             case Difficulty.IMPOSSIBLE:
                 title = "Impossible"
                 scope = "WORLDWIDE"
                 scope_color = WORLDWIDE_DIFFICULTY_COLOR
-                description = "Every city in the world with more than 50.000 citizens"
+                description = "Every city in the world with more than 200.000 citizens"
                 level = 5
             case _:
                 raise ValueError("Difficulty does not match pattern")

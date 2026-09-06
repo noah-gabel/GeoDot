@@ -7,7 +7,7 @@ API_KEY = os.getenv("API_KEY")
 
 # calculation config
 EARTH_RADIUS = 6371.0
-GUESS_TOLERANCE_KM = 0.025
+GUESS_TOLERANCE_KM = 5
 
 #General UI
 FG_COLOR="#1e1e2e"

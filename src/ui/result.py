@@ -1,5 +1,5 @@
 import customtkinter as ctk
-from models import Screen
+from ui.screen import Screen
 
 class ResultScreen(Screen):
     def __init__(self, master):

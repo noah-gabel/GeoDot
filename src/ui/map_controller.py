@@ -134,7 +134,7 @@ class MapController(TkinterMapView):
             font=(FONT, 8, "bold")
         )
 
-        bounding_box = BoundingBox.from_points(points=[guess.coords, guess.city.coords])
+        bounding_box = BoundingBox.from_points(points=[guess.coords, guess.city.coords]).padded()
 
         #automatically zooms to the specified points so you can see your guesses better
         self.fit_bounding_box(

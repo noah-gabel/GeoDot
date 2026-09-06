@@ -7,8 +7,9 @@ from config import EARTH_RADIUS, GUESS_TOLERANCE_KM
 def calculate_score(
         distance_km: float,
         difficulty: Difficulty):
-
-    score = 5000 * math.exp(-(distance_km - GUESS_TOLERANCE_KM) / difficulty.decay_km)
+    
+    # use max(distance -tolerance, 0) so that the function can never output anything beyond 500 points
+    score = 5000 * math.exp(-(max(distance_km - GUESS_TOLERANCE_KM, 0)) / difficulty.decay_km)
     
     return round(score)
     

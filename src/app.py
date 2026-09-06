@@ -3,8 +3,9 @@ from game_manager import Manager, GameState
 from ui.game import GameScreen
 from ui.start import MenuScreen
 from ui.result import ResultScreen
+from ui.screen import Screen
 from config import FG_COLOR
-from models import Coordinates, Difficulty, Screen
+from models import Coordinates, Difficulty
 
 class App(ctk.CTk):
 

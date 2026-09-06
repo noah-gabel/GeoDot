@@ -54,7 +54,7 @@ class Difficulty(Enum):
 
     def __init__(self, id:int, decay_km: int, reset_coordinates: Coordinates, reset_zoom: int):
         self.id = id # the id is required so that python can differentiate between each enum variant
-        self.decay_km = decay_km
+        self.decay_km = decay_km # distance at which the score drops to 1/e of 5000 ≈ 1839
         self.reset_coordinates = reset_coordinates
         self.reset_zoom = reset_zoom
 
@@ -83,13 +83,22 @@ class BoundingBox:
             se_corner=Coordinates(south, east)
         )
 
+    
+    def padded(self, factor: float = 0.2) -> "BoundingBox":
+        """create an inner padding for a bounding box by an amount of their own size"""
+        lat_span = self.nw_corner.lat - self.se_corner.lat
+        lon_span = self.se_corner.lon - self.nw_corner.lon
 
-class Screen(ctk.CTkFrame):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        lat_pad = lat_span * factor
+        lon_pad = lon_span * factor
 
-    def show(self):
-        self.pack(fill="both", expand=True)
-
-    def hide(self):
-        self.pack_forget()
+        return BoundingBox(
+            nw_corner=Coordinates(
+                lat=self.nw_corner.lat + lat_pad,
+                lon=self.nw_corner.lon - lon_pad,
+            ),
+            se_corner=Coordinates(
+                lat=self.se_corner.lat - lat_pad,
+                lon=self.se_corner.lon + lon_pad,
+            ),
+        )
