@@ -1,7 +1,5 @@
 from dataclasses import dataclass
-from enum import Enum, auto
-from typing import Any, Tuple
-import customtkinter as ctk
+from enum import Enum
 @dataclass(frozen=True)
 class Coordinates:
     lat: float
@@ -85,7 +83,7 @@ class BoundingBox:
 
     
     def padded(self, factor: float = 0.2) -> "BoundingBox":
-        """create an inner padding for a bounding box by an amount of their own size"""
+        """create a margin for a bounding box by an amount of their own size"""
         lat_span = self.nw_corner.lat - self.se_corner.lat
         lon_span = self.se_corner.lon - self.nw_corner.lon
 
@@ -102,3 +100,4 @@ class BoundingBox:
                 lon=self.se_corner.lon + lon_pad,
             ),
         )
+    

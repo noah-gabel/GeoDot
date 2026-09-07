@@ -14,11 +14,11 @@ class Manager():
     def __init__(self, database: Database):
         self.database = database
         self.game_state = GameState.STARTING
-        self.total_score: int = 0
 
     def start_game(self, difficulty : Difficulty) -> GameState:
         try:
             self.difficulty = difficulty
+            self.total_score: int = 0
 
             city_data = self.database.get_random_cities(difficulty)
             self.cities: list[City] = [City(city_ONR=city_ONR,name=name, coords=Coordinates(lat=latitude, lon=longitude)) for (city_ONR, name, latitude, longitude) in city_data]

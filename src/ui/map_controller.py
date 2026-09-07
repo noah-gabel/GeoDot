@@ -35,7 +35,7 @@ class MapController(TkinterMapView):
         self.pressed_pos = event
 
     def _on_release(self, event: Event):
-        if self.pressed_pos == None:
+        if self.pressed_pos is None:
             return
 
         distance_x = abs(self.pressed_pos.x - event.x)

@@ -5,7 +5,7 @@ from models import Difficulty
 
 class Database:
     def __init__(self, db_path : str):
-        self.db_path : str = db_path;
+        self.db_path : str = db_path
 
     def _get_connection(self):
         return sqlite3.connect(self.db_path)
@@ -62,7 +62,7 @@ class Database:
                     query = """
                         SELECT ONR, Name, Breite, Laenge
                         FROM ort
-                        WHERE Einwohner > 200000
+                        WHERE Einwohner > 300000
                         ORDER BY RANDOM()
                         LIMIT ?
                     """

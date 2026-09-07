@@ -29,7 +29,7 @@ class App(ctk.CTk):
         self.active_screen : Screen = self.menu_screen
 
     def _submit_guess(self):
-        # checks wether the active screen is a GameScreen so that teh function will run
+        # checks whether the active screen is a GameScreen so that the function will run
         # throws an error in case it is a wrong screen
         # this case should never occur when using the code correctly
         assert isinstance(self.active_screen, GameScreen), "wrong screen is being displayed"
@@ -58,7 +58,7 @@ class App(ctk.CTk):
     def _update_to_game_screen(self):
         self._switch_screen(screen=self.game_screen)
 
-        # assert wether the screen is a GameScreen instance in order for the linter to know
+        # assert whether the screen is a GameScreen instance in order for the linter to know
         # in reality it will always be a GameScreen
         assert isinstance(self.active_screen, GameScreen), "something went wrong during screen switch"
 
