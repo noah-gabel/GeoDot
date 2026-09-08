@@ -5,14 +5,16 @@ from math import sqrt
 from models import Difficulty, Guess, Coordinates, BoundingBox
 
 class MapController(TkinterMapView):
-    def __init__(self, master, enable_guess_button, disable_guess_button):
-        super().__init__(master)
+    def __init__(self, master, enable_guess_button = None, disable_guess_button = None, corner_radius = 0):
+        super().__init__(master, corner_radius=corner_radius)
 
         self.pressed_pos: Event | None = None
         self.guess_coordinates : Coordinates | None = None
         self.guess_marker = None
         self.city_marker = None
         self.input_blocked: bool = False
+
+        self.result_city_marker = []
 
         self.set_tile_server(f"https://a.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{{z}}/{{x}}/{{y}}.png?key={API_KEY}")
         self._bind_button_clicks()
@@ -66,7 +68,9 @@ class MapController(TkinterMapView):
         )
 
         self.guess_coordinates = Coordinates(lat=coords_x, lon=coords_y)
-        self._enable_guess_button()
+
+        if self._enable_guess_button is not None:
+            self._enable_guess_button()
 
     def _install_input_blocker(self):
         # creates a unique blocking tag bind for each map so if multiple ones are created they don't interfere
@@ -87,7 +91,10 @@ class MapController(TkinterMapView):
 
     def set_input_blocked(self, blocked: bool):
         self.input_blocked = blocked
-        self._disable_guess_button()
+
+        if self._disable_guess_button is not None:
+            self._disable_guess_button()
+            
         self.pressed_pos = None # set position to None: if a user pressed a button exactly when the movement gets locked it could cause problems
 
     def _cleanup_guess_marker(self):
@@ -99,6 +106,17 @@ class MapController(TkinterMapView):
         if self.city_marker:
             self.city_marker.delete()
             self.city_marker = None
+
+    def _place_city_marker(self, guess: Guess):
+        return self.set_marker(
+            deg_x=guess.city.coords.lat, 
+            deg_y=guess.city.coords.lon, 
+            text=guess.city.name,
+            marker_color_circle=CITY_MARKER_COLOR_INSIDE,
+            marker_color_outside=CITY_MARKER_COLOR_OUTSIDE,
+            text_color=MARKER_TEXT_COLOR,
+            font=(FONT, 8, "bold")
+        )
     
     def reset(self, difficulty: Difficulty):
         #change the position and zoom of the map according to the mode to a default position
@@ -109,6 +127,9 @@ class MapController(TkinterMapView):
         self.set_zoom(difficulty.reset_zoom)
 
         self.guess_coordinates = None
+
+        # reset all city markers for the end conclusion screen
+        self.result_city_marker = []
         
         self._cleanup_guess_marker()
         self._cleanup_city_marker()
@@ -124,15 +145,7 @@ class MapController(TkinterMapView):
         #prevents a city marker being placed extra when the function is called twice in a round
         self._cleanup_city_marker()
 
-        self.city_marker = self.set_marker(
-            deg_x=guess.city.coords.lat, 
-            deg_y=guess.city.coords.lon, 
-            text=guess.city.name,
-            marker_color_circle=CITY_MARKER_COLOR_INSIDE,
-            marker_color_outside=CITY_MARKER_COLOR_OUTSIDE,
-            text_color=MARKER_TEXT_COLOR,
-            font=(FONT, 8, "bold")
-        )
+        self.city_marker = self._place_city_marker(guess=guess)
 
         bounding_box = BoundingBox.from_points(points=[guess.coords, guess.city.coords]).padded()
 
@@ -147,6 +160,10 @@ class MapController(TkinterMapView):
             color= RESULT_PATH_COLOR,
             width= RESULT_PATH_WIDTH
         )
+
+    def place_result_city_markers(self, results: list[Guess]):
+        for guess in results:
+            self.result_city_marker.append(self._place_city_marker(guess=guess))
 
     def show_grid(self, row: int, column: int):
         self.grid(row=row, column=column, sticky="nswe")

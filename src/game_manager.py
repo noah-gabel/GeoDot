@@ -20,7 +20,8 @@ class Manager():
             self.difficulty = difficulty
             self.total_score: int = 0
 
-            city_data = self.database.get_random_cities(difficulty)
+            # TODO remove the amount only for testing
+            city_data = self.database.get_random_cities(difficulty, amount=1)
             self.cities: list[City] = [City(city_ONR=city_ONR,name=name, coords=Coordinates(lat=latitude, lon=longitude)) for (city_ONR, name, latitude, longitude) in city_data]
 
             self.results: list[Guess] = []

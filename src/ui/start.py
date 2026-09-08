@@ -22,7 +22,7 @@ class DifficultyCard(ctk.CTkFrame):
                 title = "Easy"
                 scope = "GERMANY"
                 scope_color = GERMANY_DIFFICULTY_COLOR
-                description = "Only metropolises from inside Germany with more than 500.000 citizens"
+                description = "Only metropolises from inside Germany with more than 100.000 citizens"
                 level = 1
             case Difficulty.STANDARD:
                 title = "Standard"
@@ -34,7 +34,7 @@ class DifficultyCard(ctk.CTkFrame):
                 title = "Hard"
                 scope = "EUROPE"
                 scope_color = EUROPE_DIFFICULTY_COLOR
-                description = "Cities in Europe with more than 300.000 citizens"
+                description = "Cities in Europe with more than 200.000 citizens"
                 level = 3
             case Difficulty.EXTREME:
                 title = "Extreme"

@@ -22,7 +22,7 @@ class Database:
                         FROM ort, land
                         WHERE ort.LNR = land.LNR
                         AND land.Name = 'Deutschland'
-                        AND ort.Einwohner > 500000
+                        AND ort.Einwohner > 100000
                         ORDER BY RANDOM()
                         LIMIT ?
                     """
@@ -40,7 +40,7 @@ class Database:
                     query="""
                         SELECT ort.ONR, ort.Name, ort.Breite, ort.Laenge
                         FROM ort, land, kontinent
-                        WHERE ort.Einwohner > 300000
+                        WHERE ort.Einwohner > 200000
                         AND ort.LNR = land.LNR
                         AND land.KNR = kontinent.KNR
                         AND kontinent.Name = 'Europa'
