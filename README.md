@@ -39,7 +39,7 @@ This started as a fun side project for a school class, so don't expect productio
 ### Install
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/noah-gabel/GeoDot
 cd geodot
 uv sync
 ```
