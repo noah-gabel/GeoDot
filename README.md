@@ -65,30 +65,6 @@ uv run src/main.py
 
 Pick a difficulty, hit start, click where you think the city is and click the guess button (or hit **Space** to submit), and see how close you got. Repeat until the round count runs out, then check your total score.
 
-## Project Structure
-
-```
-geodot/
-├── src/
-│   ├── main.py              # entry point
-│   ├── app.py                # main window / screen switching
-│   ├── config.py             # colors, fonts, tuning values, API key loading
-│   ├── database.py           # pulls random cities by difficulty from SQLite
-│   ├── game_manager.py       # the actual game state machine
-│   ├── models.py             # Coordinates, City, Guess, Difficulty, etc.
-│   ├── score.py               # haversine distance + scoring formula
-│   └── ui/
-│       ├── screen.py          # base class for switchable screens
-│       ├── start.py           # menu / difficulty picker
-│       ├── game.py            # gameplay screen
-│       ├── result.py          # end screen
-│       ├── map_controller.py  # all the map click/marker logic
-│       └── formatting.py      # small display helpers
-├── pyproject.toml
-├── uv.lock
-└── LICENSE
-```
-
 ## How It Works
 
 ### Difficulty levels
