@@ -16,6 +16,7 @@ class MapController(TkinterMapView):
         self.allow_guessing = allow_guessing
 
         self.result_city_marker = []
+        self.result_guess_marker = []
 
         self.set_tile_server(f"https://a.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{{z}}/{{x}}/{{y}}.png?key={API_KEY}")
         if self.allow_guessing:
@@ -120,6 +121,17 @@ class MapController(TkinterMapView):
             text_color=MARKER_TEXT_COLOR,
             font=(FONT, 8, "bold")
         )
+
+    def _place_guess_marker(self, guess:Guess):
+        return self.set_marker(
+            deg_x=guess.coords.lat, 
+            deg_y=guess.coords.lon,
+            text="YOUR GUESS",
+            marker_color_outside=GUESS_MARKER_COLOR,
+            marker_color_circle=GUESS_MARKER_CIRCLE_COLOR,
+            text_color=MARKER_TEXT_COLOR,
+            font=(FONT, 8, "bold"),
+        )
     
     def reset(self, difficulty: Difficulty):
         #change the position and zoom of the map according to the mode to a default position
@@ -131,6 +143,9 @@ class MapController(TkinterMapView):
         for marker in self.result_city_marker:
             marker.delete()
         self.result_city_marker = []
+        for marker in self.result_guess_marker:
+            marker.delete()
+        self.result_guess_marker = []
         
         self._cleanup_guess_marker()
         self._cleanup_city_marker()
@@ -151,12 +166,7 @@ class MapController(TkinterMapView):
         #automatically zooms to the specified points so you can see your guesses better
         self._fit_to_bounding_box(bounding_box=bounding_box)
 
-        self.set_path(
-            [(guess.coords.lat, guess.coords.lon),
-             (guess.city.coords.lat, guess.city.coords.lon)],
-            color= RESULT_PATH_COLOR,
-            width= RESULT_PATH_WIDTH
-        )
+        self._place_path(guess=guess)
 
     def _fit_to_bounding_box(self, bounding_box: BoundingBox):
         #automatically zooms so the specified points are visible
@@ -164,9 +174,23 @@ class MapController(TkinterMapView):
             position_top_left=(bounding_box.nw_corner.lat, bounding_box.nw_corner.lon), 
             position_bottom_right=(bounding_box.se_corner.lat, bounding_box.se_corner.lon))
 
+    def _place_path(self, guess: Guess):
+        self.set_path(
+            [(guess.coords.lat, guess.coords.lon),
+                (guess.city.coords.lat, guess.city.coords.lon)],
+            color= RESULT_PATH_COLOR,
+            width= RESULT_PATH_WIDTH
+        )
+
     def place_result_city_markers(self, results: list[Guess]):
         for guess in results:
-            self.result_city_marker.append(self._place_city_marker(guess=guess))
+            self.place_guess_city_combo(guess=guess)
+
+    def place_guess_city_combo(self, guess: Guess):
+        self.result_guess_marker.append(self._place_guess_marker(guess=guess))
+        self.result_city_marker.append(self._place_city_marker(guess=guess))
+
+        self._place_path(guess=guess)
 
     def show_grid(self, row: int, column: int):
         self.grid(row=row, column=column, sticky="nswe")

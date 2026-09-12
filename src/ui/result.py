@@ -3,17 +3,20 @@ from ui.screen import Screen
 from models import Guess, Difficulty
 from ui.map_controller import MapController
 from ui.formatting import score_color, format_distance
-from config import FG_COLOR, FONT, HEADING_TEXT_COLOR, TEXT_COLOR, CARD_FG_COLOR, TEXT_FAINT_COLOR, CARD_BORDER_COLOR, TEXT_DIM_COLOR, MAX_ROUND_SCORE, BUTTON_FG_COLOR, BUTTON_HOVER_FG_COLOR, CARD_HOVER_FG_COLOR
+from config import FG_COLOR, FONT, HEADING_TEXT_COLOR, TEXT_COLOR, CARD_FG_COLOR, TEXT_FAINT_COLOR, CARD_BORDER_COLOR, TEXT_DIM_COLOR, MAX_ROUND_SCORE, BUTTON_FG_COLOR, BUTTON_HOVER_FG_COLOR, CARD_HOVER_FG_COLOR, CARD_SELECT_BORDER_COLOR, RESULT_ENTRY_BAR_HEIGHT
 
 class ResultRow(ctk.CTkFrame):
-    def __init__(self, master, index : int,  guess: Guess, border_width = 2, corner_radius = 12):
-        super().__init__(master, fg_color=CARD_FG_COLOR, border_width=border_width, corner_radius=corner_radius)
+    def __init__(self, master, index : int,  guess: Guess, on_click, border_width = 2, corner_radius = 12):
+        super().__init__(master, fg_color=CARD_FG_COLOR, border_width=border_width, corner_radius=corner_radius, height=RESULT_ENTRY_BAR_HEIGHT)
 
         self.index = index
         self.guess = guess
 
+        self.on_click = on_click
+
         self._setup_ui()
         #TODO add bindings in order to display only the clicked guess son the map
+        self._bind_recursively(self)
 
     def _setup_ui(self):
         self.grid_columnconfigure(1, weight=1)
@@ -46,7 +49,7 @@ class ResultRow(ctk.CTkFrame):
  
         ctk.CTkLabel(
             self,
-            text=f"{self.guess.score:,} pts",
+            text=f"{self.guess.score} pts",
             font=(FONT, 16, "bold"),
             text_color=score_color(self.guess.score),
             anchor="e",
@@ -63,6 +66,28 @@ class ResultRow(ctk.CTkFrame):
         bar.set(self.guess.score / MAX_ROUND_SCORE)
         bar.grid(row=1, column=1, columnspan=3, sticky="ew", padx=(0, 16), pady=(6, 12))
 
+    def _bind_recursively(self, widget):
+        widget.bind("<Button-1>", self._on_click, add="+")
+        widget.bind("<Enter>", self._on_enter, add="+")
+        widget.bind("<Leave>", self._on_exit, add="+")
+
+        for child in widget.winfo_children():
+            self._bind_recursively(child)
+
+    def _on_click(self, _event):
+        self.on_click(self, self.index)
+
+        # return "break" to stop tkinter from passing the event to the parent and prevent double registers for one click
+        return "break"
+
+    def _on_enter(self, _event):
+        self.configure(fg_color=CARD_HOVER_FG_COLOR)
+        self.configure(cursor="hand2")
+
+    def _on_exit(self, _event):
+        self.configure(fg_color=CARD_FG_COLOR)
+        self.configure(cursor="")
+
 
 class ResultScreen(Screen):
     def __init__(self, master, total_score, play_again, change_difficulty):
@@ -73,6 +98,11 @@ class ResultScreen(Screen):
         self.change_difficulty = change_difficulty
 
         self.total_score = total_score
+
+        self.difficulty: None | Difficulty = None
+        self.results: list[Guess] = []
+        self.result_row: ResultRow | None = None
+
         self._setup_ui()
         
     def _setup_ui(self):
@@ -154,13 +184,37 @@ class ResultScreen(Screen):
     def reset(self, difficulty: Difficulty):
         self.map.reset(difficulty=difficulty)
 
-    def _show_result_city_markers(self, results: list[Guess]):
-        self.map.place_result_city_markers(results=results)
+        self.difficulty = None
+        self.results = []
+        self.result_row = None
 
-    def show_results(self, results: list[Guess]):
-        self._show_result_city_markers(results=results)
+    def _result_row_clicked(self, widget, index: int):
+        if self.difficulty is None:
+            return
+        self.map.reset(difficulty=self.difficulty)
+
+        if widget is self.result_row:
+            self.result_row = None
+
+            widget.configure(border_color = CARD_BORDER_COLOR)
+            self.map.place_result_city_markers(results=self.results)
+        else:
+            if self.result_row is not None:
+                self.result_row.configure(border_color = CARD_BORDER_COLOR)
+
+            self.result_row = widget
+            widget.configure(border_color = CARD_SELECT_BORDER_COLOR)
+
+            guess = self.results[index]
+            self.map.place_guess_city_combo(guess=guess)
+
+    def show_results(self, results: list[Guess], difficulty: Difficulty):
+        self.difficulty = difficulty
+        self.results = results
+
+        self.map.place_result_city_markers(results=self.results)
 
         for index, guess in enumerate(results):
-            result_frame = ResultRow(self.list_frame, index=index, guess=guess)
+            result_frame = ResultRow(self.list_frame, index=index, guess=guess, on_click=self._result_row_clicked)
             result_frame.grid(row=index, column=0, sticky="ew", pady=4, columnspan=3)
     

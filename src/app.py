@@ -72,7 +72,7 @@ class App(ctk.CTk):
                 self._switch_screen(screen=self.result_screen)
                 assert isinstance(self.active_screen, ResultScreen), "Switching screens didn't work. Can only access the reset function on a ResultScreen"
                 self.active_screen.reset(self.game_manager.difficulty)
-                self.active_screen.show_results(self.game_manager.results)
+                self.active_screen.show_results(results=self.game_manager.results, difficulty=self.game_manager.difficulty)
 
     def _update_to_game_screen(self):
         self._switch_screen(screen=self.game_screen)

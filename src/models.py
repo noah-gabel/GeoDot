@@ -68,7 +68,7 @@ GERMANY_BOUNDING_BOX: BoundingBox = BoundingBox(
     se_corner=Coordinates(lat=47.630001, lon=15.373870))
 
 EUROPE_BOUNDING_BOX: BoundingBox = BoundingBox(
-    nw_corner=Coordinates(lat=58.301947, lon=-33.774550),
+    nw_corner=Coordinates(lat=63.250020, lon=-14.884339),
     se_corner=Coordinates(lat=36.146255, lon=34.053360))
 
 # uses unintuitive coordinates because the map has a maximum zoom setting and can't display the whole map at once
@@ -78,12 +78,12 @@ WORLDWIDE_BOUNDING_BOX: BoundingBox = BoundingBox(
 class Difficulty(Enum):
     EASY = (
         0,
-        90, 
+        150, 
         GERMANY_BOUNDING_BOX
     )
     STANDARD = (
         1,
-        90, 
+        150, 
         GERMANY_BOUNDING_BOX
     )
     HARD = (
