@@ -21,7 +21,7 @@ class Manager():
             self.total_score: int = 0
 
             # TODO remove the amount only for testing
-            city_data = self.database.get_random_cities(difficulty, amount=2)
+            city_data = self.database.get_random_cities(difficulty, amount=1)
             self.cities: list[City] = [City(city_ONR=city_ONR,name=name, coords=Coordinates(lat=latitude, lon=longitude)) for (city_ONR, name, latitude, longitude) in city_data]
 
             self.results: list[Guess] = []
@@ -71,6 +71,10 @@ class Manager():
             "round": f"{self.current_round_index + 1}/{len(self.cities)}",
             "score": self.total_score
         }
+
+    def reset(self) -> GameState:
+        self.game_state = GameState.STARTING
+        return self.game_state
 
     def get_current_guess(self) -> Guess:
         if self.current_round_index < 0 or len(self.results) < 1:

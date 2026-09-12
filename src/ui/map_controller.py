@@ -28,8 +28,8 @@ class MapController(TkinterMapView):
 
     def _bind_button_clicks(self):
         """ bind the left click to the canvas
-            add="+" runs these bindings alongside tkintermapviews bindings and doesn't replace or break anything """
-        
+            add="+" runs these bindings alongside tkintermapviews bindings and doesn't replace or break anything 
+        """
         self.canvas.bind("<ButtonPress-1>", self._on_press, add="+")
         self.canvas.bind("<ButtonRelease-1>", self._on_release, add="+")
 
@@ -123,16 +123,13 @@ class MapController(TkinterMapView):
     
     def reset(self, difficulty: Difficulty):
         #change the position and zoom of the map according to the mode to a default position
-        #TODO change this to padded bounding box and call fit to bounding box on it
-        self.set_position(
-            deg_x=difficulty.reset_coordinates.lat, 
-            deg_y=difficulty.reset_coordinates.lon
-        )
-        self.set_zoom(difficulty.reset_zoom)
+        self._fit_to_bounding_box(bounding_box=difficulty.reset_bounding_box)
 
         self.guess_coordinates = None
 
         # reset all city markers for the end conclusion screen
+        for marker in self.result_city_marker:
+            marker.delete()
         self.result_city_marker = []
         
         self._cleanup_guess_marker()
@@ -148,15 +145,11 @@ class MapController(TkinterMapView):
 
         #prevents a city marker being placed extra when the function is called twice in a round
         self._cleanup_city_marker()
-
         self.city_marker = self._place_city_marker(guess=guess)
 
         bounding_box = BoundingBox.from_points(points=[guess.coords, guess.city.coords]).padded()
-
         #automatically zooms to the specified points so you can see your guesses better
-        self.fit_bounding_box(
-            position_top_left=(bounding_box.nw_corner.lat, bounding_box.nw_corner.lon), 
-            position_bottom_right=(bounding_box.se_corner.lat, bounding_box.se_corner.lon))
+        self._fit_to_bounding_box(bounding_box=bounding_box)
 
         self.set_path(
             [(guess.coords.lat, guess.coords.lon),
@@ -164,6 +157,12 @@ class MapController(TkinterMapView):
             color= RESULT_PATH_COLOR,
             width= RESULT_PATH_WIDTH
         )
+
+    def _fit_to_bounding_box(self, bounding_box: BoundingBox):
+        #automatically zooms so the specified points are visible
+        self.fit_bounding_box(
+            position_top_left=(bounding_box.nw_corner.lat, bounding_box.nw_corner.lon), 
+            position_bottom_right=(bounding_box.se_corner.lat, bounding_box.se_corner.lon))
 
     def place_result_city_markers(self, results: list[Guess]):
         for guess in results:

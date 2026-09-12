@@ -18,44 +18,6 @@ class Guess:
     distance: float
     score: int
 
-class Difficulty(Enum):
-    EASY = (
-        0,
-        90, 
-        Coordinates(lat=50.708605, lon=10.287957), 
-        7
-    )
-    STANDARD = (
-        1,
-        90, 
-        Coordinates(lat=50.708605, lon=10.287957), 
-        7
-    )
-    HARD = (
-        2,
-        550, 
-        Coordinates(lat=47.721280, lon=11.604708), 
-        5
-    )
-    EXTREME = (
-        3,
-        550, 
-        Coordinates(lat=47.721280, lon=11.604708), 
-        5
-    )
-    IMPOSSIBLE = (
-        4,
-        1492, 
-        Coordinates(lat=47.721280, lon=11.604708), 
-        4
-    )
-
-    def __init__(self, id:int, decay_km: int, reset_coordinates: Coordinates, reset_zoom: int):
-        self.id = id # the id is required so that python can differentiate between each enum variant
-        self.decay_km = decay_km # distance at which the score drops to 1/e of 5000 ≈ 1839
-        self.reset_coordinates = reset_coordinates
-        self.reset_zoom = reset_zoom
-
 @dataclass
 class BoundingBox:
     nw_corner: Coordinates
@@ -100,4 +62,47 @@ class BoundingBox:
                 lon=self.se_corner.lon + lon_pad,
             ),
         )
-    
+
+GERMANY_BOUNDING_BOX: BoundingBox = BoundingBox(
+    nw_corner=Coordinates(lat=54.798054, lon=4.785561),
+    se_corner=Coordinates(lat=47.630001, lon=15.373870))
+
+EUROPE_BOUNDING_BOX: BoundingBox = BoundingBox(
+    nw_corner=Coordinates(lat=58.301947, lon=-33.774550),
+    se_corner=Coordinates(lat=36.146255, lon=34.053360))
+
+# uses unintuitive coordinates because the map has a maximum zoom setting and can't display the whole map at once
+WORLDWIDE_BOUNDING_BOX: BoundingBox = BoundingBox(
+    nw_corner=Coordinates(lat=80, lon=-160),
+    se_corner=Coordinates(lat=-10, lon=160))
+class Difficulty(Enum):
+    EASY = (
+        0,
+        90, 
+        GERMANY_BOUNDING_BOX
+    )
+    STANDARD = (
+        1,
+        90, 
+        GERMANY_BOUNDING_BOX
+    )
+    HARD = (
+        2,
+        550, 
+        EUROPE_BOUNDING_BOX
+    )
+    EXTREME = (
+        3,
+        550, 
+        EUROPE_BOUNDING_BOX
+    )
+    IMPOSSIBLE = (
+        4,
+        1492, 
+        WORLDWIDE_BOUNDING_BOX
+    )
+
+    def __init__(self, id:int, decay_km: int, reset_bounding_box: BoundingBox):
+        self.id = id # the id is required, so python can differentiate between each enum variant
+        self.decay_km = decay_km # distance at which the score drops to 1/e of 5000 ≈ 1839
+        self.reset_bounding_box = reset_bounding_box

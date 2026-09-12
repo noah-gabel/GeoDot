@@ -136,7 +136,7 @@ class MenuScreen(Screen):
         self.start_game = start_game
 
         self.cards: list[DifficultyCard] = []
-        self.difficulty: Difficulty
+        self.difficulty: Difficulty | None = None
         self._setup_ui()
 
     def _setup_ui(self):
@@ -224,3 +224,12 @@ class MenuScreen(Screen):
         #enable the starting button as soon as a card is selected
         self.start_button.configure(fg_color=START_BUTTON_FG_COLOR)
         self.start_button.configure(state="normal")
+
+    def reset(self):
+        self.start_button.configure(state="disabled")
+        self.start_button.configure(fg_color = START_BUTTON_DISABLED_FG_COLOR)
+
+        for card in self.cards:
+            card.configure(border_color=CARD_BORDER_COLOR)
+        self.difficulty = None
+        

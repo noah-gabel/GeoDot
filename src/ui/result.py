@@ -3,7 +3,7 @@ from ui.screen import Screen
 from models import Guess, Difficulty
 from ui.map_controller import MapController
 from ui.formatting import score_color, format_distance
-from config import FG_COLOR, FONT, HEADING_TEXT_COLOR, TEXT_COLOR, CARD_FG_COLOR, TEXT_FAINT_COLOR, CARD_BORDER_COLOR, TEXT_DIM_COLOR, MAX_ROUND_SCORE, WORLDWIDE_DIFFICULTY_COLOR, EUROPE_DIFFICULTY_COLOR, GERMANY_DIFFICULTY_COLOR
+from config import FG_COLOR, FONT, HEADING_TEXT_COLOR, TEXT_COLOR, CARD_FG_COLOR, TEXT_FAINT_COLOR, CARD_BORDER_COLOR, TEXT_DIM_COLOR, MAX_ROUND_SCORE, BUTTON_FG_COLOR, BUTTON_HOVER_FG_COLOR, CARD_HOVER_FG_COLOR
 
 class ResultRow(ctk.CTkFrame):
     def __init__(self, master, index : int,  guess: Guess, border_width = 2, corner_radius = 12):
@@ -13,6 +13,7 @@ class ResultRow(ctk.CTkFrame):
         self.guess = guess
 
         self._setup_ui()
+        #TODO add bindings in order to display only the clicked guess son the map
 
     def _setup_ui(self):
         self.grid_columnconfigure(1, weight=1)
@@ -64,8 +65,12 @@ class ResultRow(ctk.CTkFrame):
 
 
 class ResultScreen(Screen):
-    def __init__(self, master, total_score):
+    def __init__(self, master, total_score, play_again, change_difficulty):
         super().__init__(master, fg_color=FG_COLOR)
+
+        #define button callbacks
+        self.play_again = play_again
+        self.change_difficulty = change_difficulty
 
         self.total_score = total_score
         self._setup_ui()
@@ -83,6 +88,7 @@ class ResultScreen(Screen):
         self._setup_header()
         self._setup_map()
         self._setup_result_list()
+        self._setup_buttons()
 
     def _setup_header(self):
         header = ctk.CTkFrame(self, fg_color="transparent")
@@ -113,6 +119,37 @@ class ResultScreen(Screen):
         self.list_frame.grid_columnconfigure(0, weight=1)
         self.list_frame.grid_columnconfigure(1, weight=0)
         self.list_frame.grid_columnconfigure(2, weight=1)
+
+    def _setup_buttons(self):
+        button_frame = ctk.CTkFrame(self, fg_color="transparent")
+        button_frame.grid(row=3, column=1, pady=25)
+
+        ctk.CTkButton(
+            button_frame,
+            text="Play again",
+            font=(FONT, 18, "bold"),
+            corner_radius=30,
+            height=55,
+            width=240,
+            fg_color=BUTTON_FG_COLOR,
+            hover_color=BUTTON_HOVER_FG_COLOR,
+            command=self.play_again,
+        ).pack(side="left", padx=10)
+
+        ctk.CTkButton(
+            button_frame,
+            text="Change difficulty",
+            font=(FONT, 18, "bold"),
+            corner_radius=30,
+            height=55,
+            width=240,
+            fg_color="transparent",
+            border_width=2,
+            border_color=CARD_BORDER_COLOR,
+            hover_color=CARD_HOVER_FG_COLOR,
+            text_color=TEXT_COLOR,
+            command=self.change_difficulty,
+        ).pack(side="left", padx=10)
 
     def reset(self, difficulty: Difficulty):
         self.map.reset(difficulty=difficulty)

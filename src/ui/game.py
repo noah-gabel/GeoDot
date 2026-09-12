@@ -106,6 +106,8 @@ class GameScreen(Screen):
         self.guess_action = guess_action
         self.next_round = next_round
 
+        self._bind_space_bar()
+
         self._setup_ui()
 
     def _setup_ui(self):
@@ -184,6 +186,20 @@ class GameScreen(Screen):
 
     def _enable_guess_button(self):
         self.guess_button.configure(state="normal", fg_color=GUESS_BUTTON_FG_COLOR)
+
+    def _bind_space_bar(self):
+        """bind the space bar to a submit guess function"""
+
+        # use self.winfo_toplevel to bind it to the real widget otherwise the event doesn't fire
+        self.winfo_toplevel().bind("<space>", self._submit_space_guess)
+        self.focus_set()
+
+    def _submit_space_guess(self, _event):
+        if self.guess_button.cget("state") == "disabled":
+            return "break"
+
+        self.guess_action()
+        return "break"
 
     def start_round(self, difficulty: Difficulty):
         self.result_bar.reset()

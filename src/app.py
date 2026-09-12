@@ -26,15 +26,20 @@ class App(ctk.CTk):
         self.round = ctk.StringVar(value="N/A")
         self.current_score = ctk.IntVar(value=0)
 
-        # setup screens
-        self.menu_screen: Screen = MenuScreen(master=self, start_game=self._start_game)
-        self.game_screen: Screen = GameScreen(master=self, rounds=self.round, current_city=self.current_city, current_score=self.current_score, guess_action=self._submit_guess, next_round=self._next_round_waiting)
-        self.result_screen: Screen = ResultScreen(master=self, total_score=self.current_score)
+        # setup screens once at startup to avoid rebuilding tiles every time teh screen switches
+        self.menu_screen: MenuScreen = MenuScreen(master=self, start_game=self._start_game)
+        self.game_screen: GameScreen = GameScreen(master=self, rounds=self.round, current_city=self.current_city, current_score=self.current_score, guess_action=self._submit_guess, next_round=self._next_round_waiting)
+        self.result_screen: ResultScreen = ResultScreen(master=self, total_score=self.current_score, play_again=self._play_again, change_difficulty=self.reset)
 
         self.active_screen : Screen = self.menu_screen
 
     def _set_icon(self):
         self.iconbitmap(f"{ICON_DIR}/geodot.ico")
+
+    def reset(self):
+        self.menu_screen.reset()
+        self.result_screen.reset(self.game_manager.difficulty)
+        self._match_game_state_action(self.game_manager.reset())
 
     def _submit_guess(self):
         # checks whether the active screen is a GameScreen so that the function will run
@@ -47,6 +52,9 @@ class App(ctk.CTk):
 
         game_state = self.game_manager.submit_guess(coordinates=coordinates)
         self._match_game_state_action(game_state=game_state)
+
+    def _play_again(self):
+        self._start_game(difficulty=self.game_manager.difficulty)
 
     def _start_game(self, difficulty: Difficulty):
         game_state = self.game_manager.start_game(difficulty=difficulty)
