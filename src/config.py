@@ -4,10 +4,15 @@ from dotenv import load_dotenv
 # API KEY
 load_dotenv()
 API_KEY = os.getenv("API_KEY")
+ICON_DIR = "./src/icon"
 
 # calculation config
 EARTH_RADIUS = 6371.0
 GUESS_TOLERANCE_KM = 5
+
+# default settings
+MAX_ROUND_SCORE = 5000
+COUNTDOWN_TIME = 5 # sets the time in seconds which the countdown uses until the next round starts
 
 #General UI
 FG_COLOR="#1e1e2e"

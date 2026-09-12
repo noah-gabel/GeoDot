@@ -2,7 +2,6 @@ import sqlite3
 from contextlib import closing
 from models import Difficulty
 
-
 class Database:
     def __init__(self, db_path : str):
         self.db_path : str = db_path
@@ -17,57 +16,30 @@ class Database:
 
             match difficulty:
                 case Difficulty.EASY:
-                    query="""
-                        SELECT ort.ONR, ort.Name, ort.Breite, ort.Laenge
-                        FROM ort, land
-                        WHERE ort.LNR = land.LNR
-                        AND land.Name = 'Deutschland'
-                        AND ort.Einwohner > 100000
-                        ORDER BY RANDOM()
-                        LIMIT ?
-                    """
+                    source = "FROM land, ort"
+                    filters = "ort.LNR = land.LNR AND land.Name = 'Deutschland' AND ort.Einwohner > 100000"
                 case Difficulty.STANDARD:
-                        query="""
-                            SELECT ort.ONR, ort.Name, ort.Breite, ort.Laenge
-                            FROM ort, land
-                            WHERE ort.LNR = land.LNR
-                            AND land.Name = 'Deutschland'
-                            AND ort.Einwohner > 50000
-                            ORDER BY RANDOM()
-                            LIMIT ?
-                        """
+                        source = "FROM land, ort"
+                        filters = "ort.LNR = land.LNR AND land.Name = 'Deutschland' AND ort.Einwohner > 50000"
                 case Difficulty.HARD:
-                    query="""
-                        SELECT ort.ONR, ort.Name, ort.Breite, ort.Laenge
-                        FROM ort, land, kontinent
-                        WHERE ort.Einwohner > 200000
-                        AND ort.LNR = land.LNR
-                        AND land.KNR = kontinent.KNR
-                        AND kontinent.Name = 'Europa'
-                        ORDER BY RANDOM()
-                        LIMIT ?
-                    """
+                    source = "FROM ort, land, kontinent"
+                    filters = "ort.LNR = land.LNR AND land.KNR = kontinent.KNR AND kontinent.Name = 'Europa' AND ort.Einwohner > 200000"
                 case Difficulty.EXTREME:
-                    query= """
-                        SELECT ort.ONR, ort.Name, ort.Breite, ort.Laenge
-                        FROM ort, land, kontinent
-                        WHERE ort.Einwohner > 100000
-                        AND ort.LNR = land.LNR
-                        AND land.KNR = kontinent.KNR
-                        AND kontinent.Name = 'Europa'
-                        ORDER BY RANDOM()
-                        LIMIT ?
-                    """
+                    source = "FROM ort, land, kontinent"
+                    filters = "ort.LNR = land.LNR AND land.KNR = kontinent.KNR AND kontinent.Name = 'Europa' AND ort.Einwohner > 100000"
                 case Difficulty.IMPOSSIBLE:
-                    query = """
-                        SELECT ONR, Name, Breite, Laenge
-                        FROM ort
-                        WHERE Einwohner > 300000
-                        ORDER BY RANDOM()
-                        LIMIT ?
-                    """
+                    source = "FROM ort"
+                    filters = "ort.Einwohner > 300000"
                 case _:
                     raise ValueError(f'Unknown difficulty: {difficulty}')
+
+            query = f"""
+                SELECT ort.ONR, ort.Name, ort.Breite, ort.Laenge
+                {source}
+                WHERE {filters}
+                ORDER BY RANDOM()
+                LIMIT ?
+            """
 
             cursor.execute(query, (amount, ))
             return cursor.fetchall()

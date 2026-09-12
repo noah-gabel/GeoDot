@@ -5,7 +5,7 @@ from math import sqrt
 from models import Difficulty, Guess, Coordinates, BoundingBox
 
 class MapController(TkinterMapView):
-    def __init__(self, master, enable_guess_button = None, disable_guess_button = None, corner_radius = 0):
+    def __init__(self, master, enable_guess_button = None, disable_guess_button = None, corner_radius = 0, allow_guessing = True):
         super().__init__(master, corner_radius=corner_radius)
 
         self.pressed_pos: Event | None = None
@@ -13,11 +13,13 @@ class MapController(TkinterMapView):
         self.guess_marker = None
         self.city_marker = None
         self.input_blocked: bool = False
+        self.allow_guessing = allow_guessing
 
         self.result_city_marker = []
 
         self.set_tile_server(f"https://a.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{{z}}/{{x}}/{{y}}.png?key={API_KEY}")
-        self._bind_button_clicks()
+        if self.allow_guessing:
+            self._bind_button_clicks()
         self._install_input_blocker()
 
         self._disable_guess_button = disable_guess_button
@@ -25,8 +27,9 @@ class MapController(TkinterMapView):
 
 
     def _bind_button_clicks(self):
-        # bind the left click to the canvas
-        # add="+" runs these bindings alongside tkintermapviews bindings and doesn't replace or break anything
+        """ bind the left click to the canvas
+            add="+" runs these bindings alongside tkintermapviews bindings and doesn't replace or break anything """
+        
         self.canvas.bind("<ButtonPress-1>", self._on_press, add="+")
         self.canvas.bind("<ButtonRelease-1>", self._on_release, add="+")
 
@@ -120,6 +123,7 @@ class MapController(TkinterMapView):
     
     def reset(self, difficulty: Difficulty):
         #change the position and zoom of the map according to the mode to a default position
+        #TODO change this to padded bounding box and call fit to bounding box on it
         self.set_position(
             deg_x=difficulty.reset_coordinates.lat, 
             deg_y=difficulty.reset_coordinates.lon
