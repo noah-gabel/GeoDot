@@ -40,7 +40,7 @@ This started as a fun side project for a school class, so don't expect productio
 
 ```bash
 git clone https://github.com/noah-gabel/GeoDot
-cd geodot
+cd GeoDot
 uv sync
 ```
 
