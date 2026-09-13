@@ -134,6 +134,9 @@ class MapController(TkinterMapView):
         )
     
     def reset(self, difficulty: Difficulty):
+        # clears the tile image cache to prevent GDI usage overflowing and causing a crash
+        self.tile_image_cache.clear()
+
         #change the position and zoom of the map according to the mode to a default position
         self._fit_to_bounding_box(bounding_box=difficulty.reset_bounding_box)
 
