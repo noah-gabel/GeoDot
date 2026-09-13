@@ -28,6 +28,9 @@ class Manager():
         return self.game_state
 
     def submit_guess(self, coordinates: Coordinates) -> GameState:
+        if self.game_state != GameState.GUESSING:
+            raise RuntimeError("can't submit a guess unless the game is in guessing mode")
+
         distance = haversine_distance(
             guess_coordinates=coordinates, 
             city_coordinates=self.cities[self.current_round_index].coords
@@ -48,6 +51,9 @@ class Manager():
         return self.game_state
 
     def next_round(self) -> GameState:
+        if self.game_state != GameState.SHOWING_RESULT:
+            raise RuntimeError("can't go to the next round unless you are in teh SHOW_RESULT state")
+        
         if self.current_round_index >= len(self.cities) -1:
             self.game_state = GameState.FINISHED
             return self.game_state
