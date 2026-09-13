@@ -7,7 +7,13 @@ from config import FG_COLOR, FONT, HEADING_TEXT_COLOR, TEXT_COLOR, CARD_FG_COLOR
 
 class ResultRow(ctk.CTkFrame):
     def __init__(self, master, index : int,  guess: Guess, on_click, border_width = 2, corner_radius = 12):
-        super().__init__(master, fg_color=CARD_FG_COLOR, border_width=border_width, corner_radius=corner_radius, height=RESULT_ENTRY_BAR_HEIGHT)
+        super().__init__(
+            master, 
+            fg_color=CARD_FG_COLOR, 
+            border_width=border_width, 
+            corner_radius=corner_radius, 
+            height=RESULT_ENTRY_BAR_HEIGHT # use a specified height to prevent glitching when hovering
+        )
 
         self.index = index
         self.guess = guess

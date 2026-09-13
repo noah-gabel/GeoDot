@@ -6,8 +6,6 @@ from ui.result import ResultScreen
 from ui.screen import Screen
 from config import FG_COLOR, ICON_DIR
 from models import Coordinates, Difficulty
-import sys
-from pathlib import Path
 
 class App(ctk.CTk):
 
