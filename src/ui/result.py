@@ -15,7 +15,6 @@ class ResultRow(ctk.CTkFrame):
         self.on_click = on_click
 
         self._setup_ui()
-        #TODO add bindings in order to display only the clicked guess son the map
         self._bind_recursively(self)
 
     def _setup_ui(self):
@@ -187,6 +186,9 @@ class ResultScreen(Screen):
         self.difficulty = None
         self.results = []
         self.result_row = None
+
+        for widget in self.list_frame.winfo_children():
+            widget.destroy()
 
     def _result_row_clicked(self, widget, index: int):
         if self.difficulty is None:
