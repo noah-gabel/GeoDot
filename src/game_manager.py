@@ -16,24 +16,16 @@ class Manager():
         self.game_state = GameState.STARTING
 
     def start_game(self, difficulty : Difficulty) -> GameState:
-        try:
-            self.difficulty = difficulty
-            self.total_score: int = 0
+        self.difficulty = difficulty
+        self.total_score: int = 0
+        self.current_round_index : int = 0
+        self.results: list[Guess] = []
 
-            city_data = self.database.get_random_cities(difficulty)
-            self.cities: list[City] = [City(city_ONR=city_ONR,name=name, coords=Coordinates(lat=latitude, lon=longitude)) for (city_ONR, name, latitude, longitude) in city_data]
+        city_data = self.database.get_random_cities(difficulty)
+        self.cities: list[City] = [City(city_ONR=city_ONR,name=name, coords=Coordinates(lat=latitude, lon=longitude)) for (city_ONR, name, latitude, longitude) in city_data]
 
-            self.results: list[Guess] = []
-
-            self.current_round_index : int = 0
-            self.game_state = GameState.GUESSING
-        
-        except Exception as e:
-            #TODO add a logger or at least print/show a valuable error message
-            print(f"Error occurred: {e}")
-
+        self.game_state = GameState.GUESSING
         return self.game_state
-
 
     def submit_guess(self, coordinates: Coordinates) -> GameState:
         distance = haversine_distance(
