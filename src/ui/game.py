@@ -62,7 +62,7 @@ class RoundResultBar(ctk.CTkFrame):
 
     def show(self, guess:Guess):
         self._animate(guess=guess, current_step=0)
-        self._start_countdown()
+        self.after(1000, self._start_countdown)
 
     def _animate(self, guess: Guess, current_step: int, steps: int = 30):
         score: int = round(guess.score * current_step / steps )
@@ -76,7 +76,7 @@ class RoundResultBar(ctk.CTkFrame):
 
         if current_step < steps:
             current_step += 1
-            self.after(20, lambda: self._animate(current_step=current_step, guess=guess))
+            self.after(20, lambda: self._animate(current_step=current_step, guess=guess, steps=steps))
 
     def _start_countdown(self):
         self.countdown.set(self.countdown.get() - 1)
