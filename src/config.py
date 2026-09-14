@@ -1,10 +1,27 @@
-import os
+import os, sys
 from dotenv import load_dotenv
 
+# paths
+def get_absolute_path(relative: str) -> str:
+    """gets the absolute path of the working directory in order to have working imports once the game runs in exe mode"""
+
+    # __file__ stores the path to the current file which executes. In this case config.py
+    # use os.path.dirname two times to move out of src into the main directory
+    base_fallback = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) 
+
+    # _MEIPASS is added by pyinstaller once run in exe mode
+    # base_fallback is the fallback if the _MEIPASS attribute doesn't exist 
+    # for example when run with the normal uv run src/main.py command
+    base = getattr(sys, "_MEIPASS", base_fallback)
+
+    return os.path.join(base, relative)
+
+ICON_DIR = get_absolute_path("./src/icon")
+DATABASE_PATH = get_absolute_path("./terra.sqlite")
+
 # API KEY
-load_dotenv()
+load_dotenv(get_absolute_path(".env"))
 API_KEY = os.getenv("API_KEY")
-ICON_DIR = "./src/icon"
 
 # calculation config
 EARTH_RADIUS = 6371.0
