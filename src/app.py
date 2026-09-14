@@ -46,10 +46,11 @@ class App(ctk.CTk):
         assert isinstance(self.active_screen, GameScreen), "wrong screen is being displayed"
         
         coordinates = self.active_screen.get_guess_coords()
-        assert isinstance(coordinates, Coordinates), "no coordinates in the guess"
-
-        game_state = self.game_manager.submit_guess(coordinates=coordinates)
-        self._match_game_state_action(game_state=game_state)
+        if isinstance(coordinates, Coordinates):
+            game_state = self.game_manager.submit_guess(coordinates=coordinates)
+            self._match_game_state_action(game_state=game_state)
+        else:
+            raise RuntimeError("no coordinates in the guess")
 
     def _play_again(self):
         self._start_game(difficulty=self.game_manager.difficulty)
