@@ -29,7 +29,7 @@ class MapController(TkinterMapView):
 
     def _bind_button_clicks(self):
         """ bind the left click to the canvas
-            add="+" runs these bindings alongside tkintermapviews bindings and doesn't replace or break anything 
+            add="+" runs these bindings alongside tkintermapview's bindings and doesn't replace or break anything 
         """
         self.canvas.bind("<ButtonPress-1>", self._on_press, add="+")
         self.canvas.bind("<ButtonRelease-1>", self._on_release, add="+")

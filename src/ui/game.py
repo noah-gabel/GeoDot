@@ -128,7 +128,6 @@ class GameScreen(Screen):
         self.map.show_grid(row=1, column=0)
 
     def _setup_top_hud(self):
-        #background frame
         top_bar = ctk.CTkFrame(self, fg_color=FG_COLOR, height=75)
         top_bar.grid(row=0, column=0, sticky="ew", padx=100, pady=(0, 10))
 
@@ -163,7 +162,6 @@ class GameScreen(Screen):
         ctk.CTkLabel(score_frame, textvariable=self.current_score, font=(FONT, 20, "bold")).pack()
 
     def _setup_bottom_hud(self):
-        #background frame
         bottom_bar = ctk.CTkFrame(self, fg_color=FG_COLOR, height=75)
         bottom_bar.grid(row=2, column=0, sticky="ew")
         bottom_bar.pack_propagate(False)

@@ -2,12 +2,13 @@ import math
 from models import Coordinates, Difficulty
 from config import EARTH_RADIUS, GUESS_TOLERANCE_KM, MAX_ROUND_SCORE
 
-# calculate the score from the distance between the points
-# the points go down exponentially and depending on the mode you play
 def calculate_score(
         distance_km: float,
         difficulty: Difficulty):
-    
+    """
+    calculate the score from the distance between the points
+    the points go down exponentially and depending on the mode you play
+    """
     # use max(distance -tolerance, 0) so that the function can never output anything beyond 5000 points
     score = MAX_ROUND_SCORE * math.exp(-(max(distance_km - GUESS_TOLERANCE_KM, 0)) / difficulty.decay_km)
     
@@ -15,8 +16,9 @@ def calculate_score(
     
 
 
-# calculates the distance between two coordinates with the haversine algorithm
 def haversine_distance(guess_coordinates : Coordinates , city_coordinates : Coordinates) -> float:
+    """calculates the distance between two coordinates with the haversine algorithm"""
+    
     # calculate the Radian values
     phi1 = math.radians(guess_coordinates.lat)
     phi2 = math.radians(city_coordinates.lat)
