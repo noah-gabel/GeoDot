@@ -1,6 +1,6 @@
 # GeoDot
 
-A little GeoGuessr-inspired game — except instead of dropping you into Street View, GeoDot just tells you a **city name**, and you have to click on the map where you think it is.
+A little GeoGuessr-inspired game, except instead of dropping you into Street View, GeoDot just tells you a **city name**, and you have to click on the map where you think it is.
 
 This started as a fun side project for a school class, so don't expect production-grade polish everywhere, but it works, it's fun to play, and it was a great learning experience. If you stumbled on this from outside class: hey, welcome, feel free to poke around!
 
@@ -9,7 +9,7 @@ This started as a fun side project for a school class, so don't expect productio
 - [Features](#features)
 - [Tech Stack](#tech-stack)
 - [Getting Started](#getting-started)
-- [Project Structure](#project-structure)
+- [Build an executable](#build-an-executable)
 - [How It Works](#how-it-works)
 - [License](#license)
 
@@ -65,6 +65,26 @@ uv run src/main.py
 
 Pick a difficulty, hit start, click where you think the city is and click the guess button (or hit **Space** to submit), and see how close you got. Repeat until the round count runs out, then check your total score.
 
+## Build an executable
+
+### Prerequisites
+
+Please follow the instructions under [Getting Started](#getting-started) until you reach the **Run it** section. Afterwards you can come back and follow the steps in this section.
+
+### Build
+
+The repo ships a pre-made `GeoDot.spec` file, so no further build flags are required.
+
+```bash
+uv run pyinstaller GeoDot.spec
+```
+
+This command generates a `GeoDot.exe` under `dist/GeoDot` which you can execute to play the game. Keep the `_internal` folder next to the the `GeoDot.exe`, so the game can access crucial data like the database. The game won't start without it.
+
+### Safety notice
+
+When you use the generated `GeoDot.exe`, your own `API_KEY` **can be fetched out of the generated game files**. Please keep this in mind when sharing a copy of this game.
+
 ## How It Works
 
 ### Difficulty levels
@@ -85,8 +105,8 @@ Distance between your guess and the real city is worked out with the **Haversine
 score = 5000 × e^(−max(distance − 5km, 0) / decay)
 ```
 
-Guess within 5 km and you get the full 5,000 points. Beyond that, points fall off exponentially — how fast depends on the difficulty's decay value from the table above.
+Guess within 5 km and you get the full 5,000 points. Beyond that, points fall off exponentially. How fast depends on the difficulty's decay value from the table above.
 
 ## License
 
-This project is licensed under the **GNU General Public License v3.0** — see the [LICENSE](LICENSE) file for the full text.
+This project is licensed under the **GNU General Public License v3.0**, see the [LICENSE](LICENSE) file for the full text.
