@@ -1,5 +1,5 @@
 import customtkinter as ctk
-from config import (FG_COLOR, FONT, INTRO_HEADING_ACCENT_COLOR, TEXT_COLOR, TEXT_DIM_COLOR, HEADING_TEXT_COLOR, CARD_BORDER_COLOR, CARD_FG_COLOR, GERMANY_DIFFICULTY_COLOR, EUROPE_DIFFICULTY_COLOR, WORLDWIDE_DIFFICULTY_COLOR, CARD_INNER_PADX, CARD_WIDTH, UNSELECTED_DIFFICULTY_COLOR, CARD_HOVER_FG_COLOR, CARD_SELECT_BORDER_COLOR, START_BUTTON_DISABLED_FG_COLOR, START_BUTTON_FG_COLOR, START_BUTTON_HOVER_FG_COLOR, CARD_HEIGHT)
+from config import (FG_COLOR, FONT, INTRO_HEADING_ACCENT_COLOR, TEXT_COLOR, TEXT_DIM_COLOR, HEADING_TEXT_COLOR, CARD_BORDER_COLOR, CARD_FG_COLOR, CARD_INNER_PADX, CARD_WIDTH, UNSELECTED_DIFFICULTY_COLOR, CARD_HOVER_FG_COLOR, CARD_SELECT_BORDER_COLOR, START_BUTTON_DISABLED_FG_COLOR, START_BUTTON_FG_COLOR, START_BUTTON_HOVER_FG_COLOR, CARD_HEIGHT)
 from models import Difficulty
 from ui.screen import Screen
 
@@ -16,49 +16,14 @@ class DifficultyCard(ctk.CTkFrame):
     def _setup_ui(self):
         self.grid_propagate(False)
 
-        #set texts according to difficulty level
-        match self.difficulty:
-            case Difficulty.EASY:
-                title = "Easy"
-                scope = "GERMANY"
-                scope_color = GERMANY_DIFFICULTY_COLOR
-                description = "Only metropolises from inside Germany with more than 100.000 citizens"
-                level = 1
-            case Difficulty.STANDARD:
-                title = "Standard"
-                scope = "GERMANY"
-                scope_color = GERMANY_DIFFICULTY_COLOR
-                description = "Every German city with more than 50.000 citizens"
-                level = 2
-            case Difficulty.HARD:
-                title = "Hard"
-                scope = "EUROPE"
-                scope_color = EUROPE_DIFFICULTY_COLOR
-                description = "Cities in Europe with more than 200.000 citizens"
-                level = 3
-            case Difficulty.EXTREME:
-                title = "Extreme"
-                scope = "EUROPE"
-                scope_color = EUROPE_DIFFICULTY_COLOR
-                description = "European cities with more than 100.000 citizens"
-                level = 4
-            case Difficulty.IMPOSSIBLE:
-                title = "Impossible"
-                scope = "WORLDWIDE"
-                scope_color = WORLDWIDE_DIFFICULTY_COLOR
-                description = "Every city in the world with more than 300.000 citizens"
-                level = 5
-            case _:
-                raise ValueError("Difficulty does not match pattern")
-
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
         self.grid_rowconfigure(3, weight=1)
 
-        self._setup_difficulty_bar(level=level, scope_color=scope_color)
-        self._setup_text(scope_color=scope_color, scope=scope, title=title, description=description)
+        self._setup_difficulty_bar()
+        self._setup_text()
 
-    def _setup_difficulty_bar(self, level: int, scope_color:str):
+    def _setup_difficulty_bar(self):
         bar_frame = ctk.CTkFrame(self, fg_color="transparent", width=CARD_WIDTH)
         bar_frame.grid(row=0, column=0, pady=(15, 5), padx=CARD_INNER_PADX - 3)
 
@@ -69,23 +34,24 @@ class DifficultyCard(ctk.CTkFrame):
         bar_frame.grid_rowconfigure(0, weight=1)
 
         # generate the difficulty bar to change the amount of coloured spaces for the difficulty level
+        scope_color = self.difficulty.settings.region.color # set the default to the difficulties color
         for index in range(len(Difficulty)):
-            if index >= level:
+            if index >= self.difficulty.settings.id + 1:
                 scope_color = UNSELECTED_DIFFICULTY_COLOR
             ctk.CTkFrame(bar_frame, corner_radius=10, fg_color=scope_color, height=10).grid(row=0, column=index, sticky="ew", padx=3)    
 
-    def _setup_text(self, scope: str, scope_color:str, title: str, description:str):
+    def _setup_text(self):
         ctk.CTkLabel(
             self,
-            text=scope,
+            text=self.difficulty.settings.region.name,
             font=(FONT, 12, "bold"),
-            text_color=scope_color,
+            text_color=self.difficulty.settings.region.color,
             anchor="w",
         ).grid(row=1, column=0, sticky="ew", padx=CARD_INNER_PADX)
 
         ctk.CTkLabel(
             self,
-            text=title,
+            text=self.difficulty.name.capitalize(),
             font=(FONT, 18, "bold"),
             text_color=TEXT_COLOR,
             anchor="w",
@@ -93,7 +59,7 @@ class DifficultyCard(ctk.CTkFrame):
 
         ctk.CTkLabel(
             self,
-            text=description,
+            text=self.difficulty.settings.description,
             font=(FONT, 14),
             text_color=TEXT_DIM_COLOR,
             anchor="nw",

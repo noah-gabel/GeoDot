@@ -14,32 +14,23 @@ class Database:
         with closing(self._get_connection()) as connection:
             cursor = connection.cursor()
 
-            match difficulty:
-                case Difficulty.EASY:
-                    source = "FROM land, ort"
-                    filters = "ort.LNR = land.LNR AND land.Name = 'Deutschland' AND ort.Einwohner > 100000"
-                case Difficulty.STANDARD:
-                        source = "FROM land, ort"
-                        filters = "ort.LNR = land.LNR AND land.Name = 'Deutschland' AND ort.Einwohner > 50000"
-                case Difficulty.HARD:
-                    source = "FROM ort, land, kontinent"
-                    filters = "ort.LNR = land.LNR AND land.KNR = kontinent.KNR AND kontinent.Name = 'Europa' AND ort.Einwohner > 200000"
-                case Difficulty.EXTREME:
-                    source = "FROM ort, land, kontinent"
-                    filters = "ort.LNR = land.LNR AND land.KNR = kontinent.KNR AND kontinent.Name = 'Europa' AND ort.Einwohner > 100000"
-                case Difficulty.IMPOSSIBLE:
-                    source = "FROM ort"
-                    filters = "ort.Einwohner > 300000"
-                case _:
-                    raise ValueError(f'Unknown difficulty: {difficulty}')
-
-            query = f"""
+            query = """
                 SELECT ort.ONR, ort.Name, ort.Breite, ort.Laenge
-                {source}
-                WHERE {filters}
+                FROM ort, land, kontinent
+                WHERE land.KNR = kontinent.KNR 
+                AND ort.LNR = land.LNR
+                AND ort.Einwohner > :min_population
+                AND (:country IS NULL OR land.Name = :country)
+                AND (:continent IS NULL OR kontinent.Name = :continent)
                 ORDER BY RANDOM()
-                LIMIT ?
+                LIMIT :amount
             """
 
-            cursor.execute(query, (amount, ))
+            cursor.execute(query, {
+                "min_population": difficulty.settings.min_population,
+                "country": difficulty.settings.region.country,
+                "continent": difficulty.settings.region.continent,
+                "amount": amount
+            })
+
             return cursor.fetchall()

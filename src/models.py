@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
+from config import GERMANY_DIFFICULTY_COLOR, EUROPE_DIFFICULTY_COLOR, WORLDWIDE_DIFFICULTY_COLOR
 @dataclass(frozen=True)
 class Coordinates:
     lat: float
@@ -18,7 +19,7 @@ class Guess:
     distance: float
     score: int
 
-@dataclass
+@dataclass(frozen=True)
 class BoundingBox:
     nw_corner: Coordinates
     se_corner : Coordinates
@@ -62,47 +63,86 @@ class BoundingBox:
                 lon=self.se_corner.lon + lon_pad,
             ),
         )
+    
+class Region(Enum):
+    GERMANY = (
+        GERMANY_DIFFICULTY_COLOR,
+        BoundingBox(
+            nw_corner=Coordinates(lat=54.798054, lon=4.785561),
+            se_corner=Coordinates(lat=47.630001, lon=15.373870)),
+        "Deutschland",
+        None
+    )
+    EUROPE = ( 
+        EUROPE_DIFFICULTY_COLOR,
+        BoundingBox(
+            nw_corner=Coordinates(lat=63.250020, lon=-14.884339),
+            se_corner=Coordinates(lat=36.146255, lon=34.053360)),
+        None,
+        "Europa"
+    )
+    WORLDWIDE = (
+        WORLDWIDE_DIFFICULTY_COLOR,
+        # uses unintuitive coordinates because the map has a maximum zoom setting and can't display the whole map at once
+        BoundingBox(
+            nw_corner=Coordinates(lat=80, lon=-160),
+            se_corner=Coordinates(lat=-10, lon=160)),
+        None,
+        None
+    )
 
-GERMANY_BOUNDING_BOX: BoundingBox = BoundingBox(
-    nw_corner=Coordinates(lat=54.798054, lon=4.785561),
-    se_corner=Coordinates(lat=47.630001, lon=15.373870))
+    def __init__(self, color: str, bounding_box: BoundingBox, country: str | None, continent: str | None) -> None:
+        self.color = color
+        self.bounding_box = bounding_box
+        self.country = country
+        self.continent = continent
 
-EUROPE_BOUNDING_BOX: BoundingBox = BoundingBox(
-    nw_corner=Coordinates(lat=63.250020, lon=-14.884339),
-    se_corner=Coordinates(lat=36.146255, lon=34.053360))
+@dataclass(frozen=True)
+class DifficultySettings:
+    id: int
+    description: str
+    region: Region
+    min_population: int
+    decay_km: int # distance at which the score drops to 1/e of 5000 ≈ 1839
 
-# uses unintuitive coordinates because the map has a maximum zoom setting and can't display the whole map at once
-WORLDWIDE_BOUNDING_BOX: BoundingBox = BoundingBox(
-    nw_corner=Coordinates(lat=80, lon=-160),
-    se_corner=Coordinates(lat=-10, lon=160))
 class Difficulty(Enum):
-    EASY = (
-        0,
-        150, 
-        GERMANY_BOUNDING_BOX
-    )
-    STANDARD = (
-        1,
-        150, 
-        GERMANY_BOUNDING_BOX
-    )
-    HARD = (
-        2,
-        550, 
-        EUROPE_BOUNDING_BOX
-    )
-    EXTREME = (
-        3,
-        550, 
-        EUROPE_BOUNDING_BOX
-    )
-    IMPOSSIBLE = (
-        4,
-        1492, 
-        WORLDWIDE_BOUNDING_BOX
-    )
+    EASY = DifficultySettings(
+            id=0,
+            description="Only metropolises from inside Germany with more than 100.000 citizens",
+            region=Region.GERMANY,
+            min_population=100000,
+            decay_km=150,
+        )
+    
+    STANDARD = DifficultySettings(
+            id = 1,
+            description="Every German city with more than 50.000 citizens",
+            region=Region.GERMANY,
+            min_population=50000,
+            decay_km=150,
+        )
+    
+    HARD = DifficultySettings(
+            id = 2,
+            description="Cities in Europe with more than 200.000 citizens",
+            region=Region.EUROPE,
+            min_population=200000,
+            decay_km=550,
+        )
+    EXTREME = DifficultySettings(
+            id=3,
+            description="European cities with more than 100.000 citizens",
+            region=Region.EUROPE,
+            min_population=100000,
+            decay_km=550,
+        )
+    IMPOSSIBLE = DifficultySettings(
+            id=4,
+            description= "Every city in the world with more than 300.000 citizens",
+            region=Region.WORLDWIDE,
+            min_population= 300000,
+            decay_km=1492,
+        )
 
-    def __init__(self, id:int, decay_km: int, reset_bounding_box: BoundingBox):
-        self.id = id # the id is required, so python can differentiate between each enum variant
-        self.decay_km = decay_km # distance at which the score drops to 1/e of 5000 ≈ 1839
-        self.reset_bounding_box = reset_bounding_box
+    def __init__(self, settings: DifficultySettings):
+        self.settings: DifficultySettings = settings

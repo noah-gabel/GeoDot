@@ -138,7 +138,7 @@ class MapController(TkinterMapView):
         self.tile_image_cache.clear()
 
         #change the position and zoom of the map according to the mode to a default position
-        self._fit_to_bounding_box(bounding_box=difficulty.reset_bounding_box)
+        self._fit_to_bounding_box(bounding_box=difficulty.settings.region.bounding_box)
 
         self.guess_coordinates = None
 
