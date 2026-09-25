@@ -1,3 +1,5 @@
+"""Interactive map widget used for guessing and showing results."""
+
 from tkintermapview import TkinterMapView
 from tkinter import Event
 from config import API_KEY, TOLERANCE_RADIUS_PX, BLOCKED_BINDING_SEQUENCES, CITY_MARKER_COLOR_INSIDE, CITY_MARKER_COLOR_OUTSIDE, GUESS_MARKER_CIRCLE_COLOR, GUESS_MARKER_COLOR, MARKER_TEXT_COLOR, FONT, RESULT_PATH_COLOR, RESULT_PATH_WIDTH
@@ -5,6 +7,16 @@ from math import sqrt
 from models import Difficulty, Guess, Coordinates, BoundingBox
 
 class MapController(TkinterMapView):
+    """Map widget with guess placement, input locking and result drawing.
+ 
+    Args:
+        master: Parent widget.
+        enable_guess_button: Called for when a guess marker is placed.
+        disable_guess_button: Called whenever input is blocked or unblocked.
+        corner_radius: Corner radius of the map in pixels.
+        allow_guessing: If ``False``, clicks never place a marker. Used for the read only map on the result screen.
+    """
+
     def __init__(self, master, enable_guess_button = None, disable_guess_button = None, corner_radius = 0, allow_guessing = True):
         super().__init__(master, corner_radius=corner_radius)
 
@@ -28,9 +40,11 @@ class MapController(TkinterMapView):
 
 
     def _bind_button_clicks(self):
-        """ bind the left click to the canvas
-            add="+" runs these bindings alongside tkintermapview's bindings and doesn't replace or break anything 
+        """Bind the left click to the canvas and disable the right click menu.
+        
+        Allows for placing markers on left click, with a custom movement threshold instead of tkintermapvie's default settings.
         """
+        # add="+" runs these bindings alongside tkintermapview's bindings and doesn't replace or break anything 
         self.canvas.bind("<ButtonPress-1>", self._on_press, add="+")
         self.canvas.bind("<ButtonRelease-1>", self._on_release, add="+")
 
@@ -41,6 +55,10 @@ class MapController(TkinterMapView):
         self.pressed_pos = event
 
     def _on_release(self, event: Event):
+        """Place the guess marker if the mouse barely moved since the press.
+
+        Releases further than ``TOLERANCE_RADIUS_PX`` from the press position count as a drag and are ignored.
+        """
         if self.pressed_pos is None:
             return
 
@@ -77,6 +95,10 @@ class MapController(TkinterMapView):
             self._enable_guess_button()
 
     def _install_input_blocker(self):
+        """Put a blocking bind tag in front of the canvas's own bindings.
+
+        Handlers on this tag run first for every sequence in ``BLOCKED_BINDING_SEQUENCES`` and can stop the event before TkinterMapView receives it. Whether the events are blocked depends on ``input_blocked``.
+        """
         # creates a unique blocking tag bind for each map so if multiple ones are created they don't interfere
         block_tag = f"map_block_{id(self)}"
 
@@ -89,11 +111,19 @@ class MapController(TkinterMapView):
             self.canvas.bind_class(block_tag, sequence, self._swallow_event)
 
     def _swallow_event(self, _event: Event):
+        """Stop the event while input is blocked and let it through otherwise."""
         if self.input_blocked:
             return "break"  # ends the bind tag chain = every binding does not run
         return None         # bindings follow through like normal
 
     def set_input_blocked(self, blocked: bool):
+        """Block or allow all mouse and keyboard input on the map.
+
+        Also disables the guess button and removes a pending mouse press.
+
+        Args:
+            blocked: ``True`` to block input, ``False`` to allow it.
+        """
         self.input_blocked = blocked
 
         if self._disable_guess_button is not None:
@@ -134,6 +164,13 @@ class MapController(TkinterMapView):
         )
     
     def reset(self, difficulty: Difficulty):
+        """Clear all markers and paths and return to the default view.
+
+        Also allows input for the next round.
+
+        Args:
+            difficulty: Its region's bounding box defines the default view.
+        """
         # clears the tile image cache to prevent GDI usage overflowing and causing a crash
         self.tile_image_cache.clear()
 
@@ -159,6 +196,13 @@ class MapController(TkinterMapView):
         self.set_input_blocked(False)
 
     def show_guess_result(self, guess: Guess):
+        """Show the city and the distance line for a submitted guess.
+
+        Blocks input and zooms, so that both the guess and the city are visible.
+
+        Args:
+            guess: The result of the current round.
+        """
         self.set_input_blocked(True)
 
         #prevents a city marker being placed extra when the function is called twice in a round
@@ -172,12 +216,13 @@ class MapController(TkinterMapView):
         self._place_path(guess=guess)
 
     def _fit_to_bounding_box(self, bounding_box: BoundingBox):
-        #automatically zooms so the specified points are visible
+        """Zoom so the complete bounding box is visible"""
         self.fit_bounding_box(
             position_top_left=(bounding_box.nw_corner.lat, bounding_box.nw_corner.lon), 
             position_bottom_right=(bounding_box.se_corner.lat, bounding_box.se_corner.lon))
 
     def _place_path(self, guess: Guess):
+        """Draw a line between the guess and the city."""
         self.set_path(
             [(guess.coords.lat, guess.coords.lon),
                 (guess.city.coords.lat, guess.city.coords.lon)],
@@ -186,10 +231,22 @@ class MapController(TkinterMapView):
         )
 
     def place_result_city_markers(self, results: list[Guess]):
+        """Draw the guess, the city and the line between them for every round.
+
+        Args:
+            results: List of results for all rounds.
+        """
         for guess in results:
             self.place_guess_city_combo(guess=guess)
 
     def place_guess_city_combo(self, guess: Guess):
+        """Draw the guess, the city and the line between them for one round.
+
+        The markers are tracked so that ``reset`` can remove them later.
+
+        Args:
+            guess: The result of the round to draw.
+        """
         self.result_guess_marker.append(self._place_guess_marker(guess=guess))
         self.result_city_marker.append(self._place_city_marker(guess=guess))
 

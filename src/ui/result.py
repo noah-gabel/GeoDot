@@ -1,3 +1,5 @@
+"""Ending screen with the final score and a recap of every round."""
+
 import customtkinter as ctk
 from ui.screen import Screen
 from models import Guess, Difficulty
@@ -6,6 +8,16 @@ from ui.formatting import score_color, format_distance
 from config import FG_COLOR, FONT, HEADING_TEXT_COLOR, TEXT_COLOR, CARD_FG_COLOR, TEXT_FAINT_COLOR, CARD_BORDER_COLOR, TEXT_DIM_COLOR, MAX_ROUND_SCORE, BUTTON_FG_COLOR, BUTTON_HOVER_FG_COLOR, CARD_HOVER_FG_COLOR, CARD_SELECT_BORDER_COLOR, RESULT_ENTRY_BAR_HEIGHT
 
 class ResultRow(ctk.CTkFrame):
+    """One round in the result list: city, distance, score and a score bar.
+
+    Args:
+        master: Parent widget.
+        index: round number staring at 0.
+        guess: The result of the round.
+        on_click: Called with ``(widget, index)`` when the row is clicked.
+        border_width: Border width in pixels.
+        corner_radius: Corner radius in pixels.
+    """
     def __init__(self, master, index : int,  guess: Guess, on_click, border_width = 2, corner_radius = 12):
         super().__init__(
             master, 
@@ -72,6 +84,7 @@ class ResultRow(ctk.CTkFrame):
         bar.grid(row=1, column=1, columnspan=3, sticky="ew", padx=(0, 16), pady=(6, 12))
 
     def _bind_recursively(self, widget):
+        """Bind click and hover handlers to ``widget`` and all its children."""
         widget.bind("<Button-1>", self._on_click, add="+")
         widget.bind("<Enter>", self._on_enter, add="+")
         widget.bind("<Leave>", self._on_exit, add="+")
@@ -95,6 +108,17 @@ class ResultRow(ctk.CTkFrame):
 
 
 class ResultScreen(Screen):
+    """Final screen with the total score, a recap map and a list of all rounds.
+
+    Clicking a round shows only that round on the map. Clicking it again
+    shows all rounds.
+ 
+    Args:
+        master: Parent widget.
+        total_score: Tk IntVar holding the final score.
+        play_again: Called when the "Play again" button is pressed.
+        change_difficulty: Called when the "Change difficulty" button is pressed.
+    """
     def __init__(self, master, total_score, play_again, change_difficulty):
         super().__init__(master, fg_color=FG_COLOR)
 
@@ -187,6 +211,11 @@ class ResultScreen(Screen):
         ).pack(side="left", padx=10)
 
     def reset(self, difficulty: Difficulty):
+        """Clear the map and the result list.
+
+        Args:
+            difficulty: Decides the map's default view.
+        """
         self.map.reset(difficulty=difficulty)
 
         self.difficulty = None
@@ -197,6 +226,12 @@ class ResultScreen(Screen):
             widget.destroy()
 
     def _result_row_clicked(self, widget, index: int):
+        """Toggle the map between showing one round and showing all rounds.
+
+        Args:
+            widget: The clicked row.
+            index: Index of the clicked round.
+        """
         if self.difficulty is None:
             return
         self.map.reset(difficulty=self.difficulty)
@@ -217,6 +252,12 @@ class ResultScreen(Screen):
             self.map.place_guess_city_combo(guess=guess)
 
     def show_results(self, results: list[Guess], difficulty: Difficulty):
+        """Fill the map and the list with the results of a finished game.
+
+        Args:
+            results: A list of the results which are represented with each a ``Guess``, in the order they were played.
+            difficulty: The difficulty of the finished game.
+        """
         self.difficulty = difficulty
         self.results = results
 

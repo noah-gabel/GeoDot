@@ -1,3 +1,5 @@
+"""Main window that connects the game manager to the screens."""
+
 import customtkinter as ctk
 from game_manager import Manager, GameState
 from ui.game import GameScreen
@@ -8,7 +10,16 @@ from config import FG_COLOR, ICON_DIR
 from models import Coordinates, Difficulty
 
 class App(ctk.CTk):
+    """Main application window.
 
+    Creates the menu, game and result screens once at startup and switches
+    between them based on the ``GameState`` returned by the ``Manager``. User
+    actions from the screens arrive here as callbacks and are forwarded to the
+    manager.
+
+    Args:
+        game_manager: Calculates game logic and holds the current state of the game.
+    """
     def __init__(self, game_manager: Manager, *args, **kwargs):
         super().__init__(*args, **kwargs, fg_color=FG_COLOR)
         self.game_manager = game_manager
@@ -35,11 +46,17 @@ class App(ctk.CTk):
         self.iconbitmap(f"{ICON_DIR}/geodot.ico")
 
     def reset(self):
+        """End the finished game and return to the difficulty selection."""
         self.menu_screen.reset()
         self.result_screen.reset(self.game_manager.difficulty)
         self._match_game_state_action(self.game_manager.reset())
 
     def _submit_guess(self):
+        """Submit the marker placed on the map as the guess for this round.
+
+        Raises:
+            RuntimeError: If no marker has been placed.
+        """
         # checks whether the active screen is a GameScreen so that the function will run
         # throws an error in case it is a wrong screen
         # this case should never occur when using the code correctly
@@ -53,13 +70,16 @@ class App(ctk.CTk):
             raise RuntimeError("no coordinates in the guess")
 
     def _play_again(self):
+        """Start a new game with the same difficulty."""
         self._start_game(difficulty=self.game_manager.difficulty)
 
     def _start_game(self, difficulty: Difficulty):
+        """Start a game with the chosen difficulty and show the first round."""
         game_state = self.game_manager.start_game(difficulty=difficulty)
         self._match_game_state_action(game_state=game_state)
 
     def _match_game_state_action(self, game_state: GameState):
+        """Update the UI to match the given game state."""
         match game_state:
             case GameState.STARTING:
                 self._switch_screen(screen=self.menu_screen)
@@ -74,6 +94,7 @@ class App(ctk.CTk):
                 self.active_screen.show_results(results=self.game_manager.results, difficulty=self.game_manager.difficulty)
 
     def _update_to_game_screen(self):
+        """Show the game screen and prepare it for a new round."""
         self._switch_screen(screen=self.game_screen)
 
         # assert whether the screen is a GameScreen instance in order for the linter to know
@@ -91,6 +112,7 @@ class App(ctk.CTk):
         self.current_score.set(data.get("score", 0))
 
     def _show_round_result(self):
+        """Reveal the result of the current round on the game screen."""
         assert isinstance(self.active_screen, GameScreen), "wrong screen is being displayed"
         self.active_screen.show_results(self.game_manager.get_current_guess())
 
@@ -102,17 +124,24 @@ class App(ctk.CTk):
         self.current_score.set(data.get("score", 0))
 
     def _next_round_waiting(self):
-        """ callback function for the countdown to start the next round
-            needs to be a separate function in order for the returned game_state to be captured and evaluated
+        """Skip to the next round once the result countdown has ended.
+
+        Passed to the game screen as a callback, so the returned game state is
+        handled here rather than inside the screen.
         """
         self._match_game_state_action(self.game_manager.next_round())
 
     def _switch_screen(self, screen : Screen):
+        """Hide the active screen and show ``screen`` instead.
+
+        Does nothing if ``screen`` is already the active screen.
+        """
         if self.active_screen is not screen:
             self.active_screen.hide()
             self.active_screen = screen
             self.active_screen.show()
     
     def start(self):
+        """Show the start screen and run the event loop until the window closes."""
         self.active_screen.show()
         self.mainloop()

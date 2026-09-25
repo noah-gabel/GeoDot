@@ -1,9 +1,23 @@
+"""Application wide configuration.
+ 
+Holds absolute file paths, the map tile API key loaded from ``.env``, scoring constants and the UI theme (colors, fonts and sizes).
+"""
+
 import os, sys
 from dotenv import load_dotenv
 
 # paths
 def get_absolute_path(relative: str) -> str:
-    """gets the absolute path of the working directory in order to have working imports once the game runs in exe mode"""
+    """Get the absolute path to a path relative to teh project root.
+
+    Works both when running with uv or in exe mode, where bundled files are extracted to the temporary ``sys._MEIPASS`` directory.
+ 
+    Args:
+        relative: Path relative to the project root, e.g. ``"terra.sqlite"``.
+
+    Returns:
+        The absolute path to the file or directory.
+    """
 
     # __file__ stores the path to the current file which executes. In this case config.py
     # use os.path.dirname two times to move out of src into the main directory

@@ -1,9 +1,15 @@
+"""Game logic independent of the user interface."""
+
 from database import Database
 from enum import Enum, auto
 from models import City, Guess, Coordinates, Difficulty
 from score import haversine_distance, calculate_score
 
 class GameState(Enum):
+    """Phases of a game.
+
+    ``Manager`` methods return the new state so the UI can decide which screen to show next.
+    """
     STARTING = auto()       #idle screen with difficulties and start button
     GUESSING = auto()       #playing and looking for a guess
     SHOWING_RESULT = auto() #showing the results of the current round and starting the next one
@@ -11,11 +17,28 @@ class GameState(Enum):
 
 
 class Manager():
+    """Runs the complete game logic.
+
+    The manager is a small state machine. Methods which advance the game, return a new ``GameState``. It has no knowledge of the UI.
+
+    Args:
+        database: Instance of ``Database``. Source of the cities for each game.
+    """
     def __init__(self, database: Database):
         self.database = database
         self.game_state = GameState.STARTING
 
     def start_game(self, difficulty : Difficulty) -> GameState:
+        """Start a new game and load its cities.
+
+        Resets the score, round counter and results. Due to that fact, this method can be used as a play again feature
+
+        Args:
+            difficulty: Decides which cities are loaded and how guesses are scored.
+ 
+        Returns:
+            ``GameState.GUESSING``.
+        """
         self.difficulty = difficulty
         self.total_score: int = 0
         self.current_round_index : int = 0
@@ -28,6 +51,17 @@ class Manager():
         return self.game_state
 
     def submit_guess(self, coordinates: Coordinates) -> GameState:
+        """Score the player's guess for the current round.
+
+        Args:
+            coordinates: Where the player placed their marker.
+
+        Returns:
+            ``GameState.SHOWING_RESULT``.
+
+        Raises:
+            RuntimeError: If the game is not in ``GameState.GUESSING``.
+        """
         if self.game_state != GameState.GUESSING:
             raise RuntimeError("can't submit a guess unless the game is in guessing mode")
 
@@ -51,6 +85,14 @@ class Manager():
         return self.game_state
 
     def next_round(self) -> GameState:
+        """Skip to the next round, or finish the game after the last one.
+ 
+        Returns:
+            ``GameState.GUESSING`` if another round follows, otherwise ``GameState.FINISHED``.
+ 
+        Raises:
+            RuntimeError: If the game is not in ``GameState.SHOWING_RESULT``.
+        """
         if self.game_state != GameState.SHOWING_RESULT:
             raise RuntimeError("can't go to the next round unless you are in teh SHOW_RESULT state")
         
@@ -63,6 +105,11 @@ class Manager():
         return self.game_state
         
     def get_game_screen_data(self) -> dict:
+        """Return the values shown in the in game HUD.
+
+        Returns:
+            A dict with ``city_name`` (the city to find), ``round`` (e.g. ``"3/10"``) and ``score`` (total score so far).
+        """
         return {
             "city_name": self.cities[self.current_round_index].name,
             "round": f"{self.current_round_index + 1}/{len(self.cities)}",
@@ -70,10 +117,22 @@ class Manager():
         }
 
     def reset(self) -> GameState:
+        """Return to the difficulty selection.
+
+        The results of the last game stay available until the next ``start_game`` call.
+
+        Returns:
+            ``GameState.STARTING``.
+        """
         self.game_state = GameState.STARTING
         return self.game_state
 
     def get_current_guess(self) -> Guess:
+        """Return the guess submitted in the current round.
+
+        Raises:
+            ValueError: If no guess has been submitted yet.
+        """
         if self.current_round_index < 0 or len(self.results) < 1:
             raise ValueError("you should only call this function after submitting a guess")
 

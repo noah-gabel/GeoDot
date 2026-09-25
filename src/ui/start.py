@@ -1,9 +1,20 @@
+"""Start screen where the player picks a difficulty."""
+
 import customtkinter as ctk
 from config import (FG_COLOR, FONT, INTRO_HEADING_ACCENT_COLOR, TEXT_COLOR, TEXT_DIM_COLOR, HEADING_TEXT_COLOR, CARD_BORDER_COLOR, CARD_FG_COLOR, CARD_INNER_PADX, CARD_WIDTH, UNSELECTED_DIFFICULTY_COLOR, CARD_HOVER_FG_COLOR, CARD_SELECT_BORDER_COLOR, START_BUTTON_DISABLED_FG_COLOR, START_BUTTON_FG_COLOR, START_BUTTON_HOVER_FG_COLOR, CARD_HEIGHT)
 from models import Difficulty
 from ui.screen import Screen
 
 class DifficultyCard(ctk.CTkFrame):
+    """Clickable card that describes one difficulty.
+
+    Args:
+        master: Parent widget.
+        difficulty: The difficulty shown on the card.
+        on_click_callback: Called with ``clicked_card=self`` when the card is clicked.
+        border_width: Border width in pixels.
+        corner_radius: Corner radius in pixels.
+    """
     def __init__(self, master, difficulty: Difficulty, on_click_callback, border_width=2, corner_radius=20):
         super().__init__(master=master, fg_color=CARD_FG_COLOR, border_color=CARD_BORDER_COLOR, border_width=border_width, corner_radius=corner_radius, width=CARD_WIDTH, height=CARD_HEIGHT)
 
@@ -68,9 +79,9 @@ class DifficultyCard(ctk.CTkFrame):
         ).grid(row=3, column=0, sticky="new", padx=CARD_INNER_PADX, pady=4)
 
     def _bind_actions_recursive(self, widget):
-        """
-        recursively bind every action to every child
-        without this the click or hover would only activate when clicking on the main frame and not when clicking on labels or other widgets inside the main frame
+        """Bind click and hover handlers to ``widget`` and all its descendants.
+
+        Without this, clicking or hovering over a label inside the card would not trigger the event.
         """
 
         # use add="+" in order to not override existing binds
@@ -96,6 +107,12 @@ class DifficultyCard(ctk.CTkFrame):
         self.configure(cursor="")
 
 class MenuScreen(Screen):
+    """Start screen where the player picks a difficulty and starts a game.
+
+    Args:
+        master: Parent widget.
+        start_game: Called with the selected ``Difficulty`` when teh START button is pressed.
+    """
     def __init__(self, master, start_game):
         super().__init__(master, fg_color=FG_COLOR)
 
@@ -178,6 +195,7 @@ class MenuScreen(Screen):
         self.start_button.grid(row=5, column=0, pady=40)
 
     def _on_card_select(self, clicked_card: DifficultyCard):
+        """Highlight the clicked card, store its difficulty and enable the START button."""
         for card in self.cards:
             card.configure(border_color=CARD_BORDER_COLOR)
 
@@ -192,6 +210,7 @@ class MenuScreen(Screen):
         self.start_button.configure(state="normal")
 
     def reset(self):
+        """Clear the selected difficulty and disable the start button."""
         self.start_button.configure(state="disabled")
         self.start_button.configure(fg_color = START_BUTTON_DISABLED_FG_COLOR)
 

@@ -1,8 +1,20 @@
+"""Core data types shared by the game logic, the database and the UI.
+
+Contains immutable value objects (coordinates, cities, guesses), map bounding
+boxes, and the ``Region`` and ``Difficulty`` enums that define every game mode.
+"""
+
 from dataclasses import dataclass
 from enum import Enum
 from config import GERMANY_DIFFICULTY_COLOR, EUROPE_DIFFICULTY_COLOR, WORLDWIDE_DIFFICULTY_COLOR
 @dataclass(frozen=True)
 class Coordinates:
+    """A geographic position in decimal degrees.
+
+    Attributes:
+        lat: Latitude, positive north of the equator.
+        lon: Longitude, positive east of the prime meridian.
+    """
     lat: float
     lon: float
 
@@ -14,6 +26,14 @@ class City:
 
 @dataclass(frozen=True)
 class Guess:
+    """The outcome of a single round.
+
+    Attributes:
+        city: The city the player had to find.
+        coords: Where the player placed their marker.
+        distance: Great-circle distance between guess and city in kilometers.
+        score: Points scored in the round.
+    """
     city: City
     coords: Coordinates
     distance: float
@@ -21,13 +41,32 @@ class Guess:
 
 @dataclass(frozen=True)
 class BoundingBox:
+    """A rectangular map area defined by its north-west and south-east corners.
+
+    Used to pan and zoom the map so that a region or a set of points is
+    fully visible.
+ 
+    Attributes:
+        nw_corner: Top-left corner
+        se_corner: Bottom-right corner
+    """
     nw_corner: Coordinates
     se_corner : Coordinates
 
     # use @classmethod to construct a class object without having an existing instance of this class
     @classmethod
     def from_points(cls, points : list[Coordinates]) -> "BoundingBox":
+        """Create the smallest bounding box that contains all given points.
 
+        Args:
+            points: The points to enclose. Must contain at least one point.
+
+        Returns:
+            A bounding box whose edges touch the outermost points.
+
+        Raises:
+            ValueError: If ``points`` is empty.
+        """
         if len(points) < 1:
             raise ValueError("bounding box needs at least one point")
         
@@ -46,7 +85,14 @@ class BoundingBox:
 
     
     def padded(self, factor: float = 0.2) -> "BoundingBox":
-        """create a margin for a bounding box by an amount of their own size"""
+        """Return a copy that is larger on every side by a fraction of its size.
+ 
+        Args:
+            factor: Margin added to each side, as a fraction of the box' height and width. ``0.2`` adds 20% on every side. Defaults to ``0.2``
+ 
+        Returns:
+            A new, larger bounding box. The original stays unchanged.
+        """
         lat_span = self.nw_corner.lat - self.se_corner.lat
         lon_span = self.se_corner.lon - self.nw_corner.lon
 
@@ -65,6 +111,18 @@ class BoundingBox:
         )
     
 class Region(Enum):
+    """Geographic area that a difficulty draws its cities from.
+
+    Each member bundles how the region is presented in the UI and how its
+    cities are selected from the database. The member name (``GERMANY``,
+    ``EUROPE``, ``WORLDWIDE``) doubles as the display label.
+ 
+    Attributes:
+        color: Accent color of the region on the difficulty cards.
+        bounding_box: BoundingBox which covers the default view onto the region.
+        country: Value of ``land.Name`` to filter by in the database or ``None`` for no country filter.
+        continent: Value of ``kontinent.Name`` to filter by in teh database, or ``None`` for no continent filter.
+    """
     GERMANY = (
         GERMANY_DIFFICULTY_COLOR,
         BoundingBox(
@@ -99,13 +157,27 @@ class Region(Enum):
 
 @dataclass(frozen=True)
 class DifficultySettings:
+    """Settings which define one difficulty level.
+
+    Attributes:
+        id: unique identifier for each difficulty. Starts at 0.
+        description: Short explanation of the difficulty shown on the difficulty card.
+        region: Area the cities are drawn from.
+        min_population: Only cities with a larger population than this value are used.
+        decay_km: How quickly the score falls off with distance. At ``decay_km`` the score has dropped to 1/e of the maximum.
+    """
+
     id: int
     description: str
     region: Region
     min_population: int
-    decay_km: int # distance at which the score drops to 1/e of 5000 ≈ 1839
+    decay_km: int
 
 class Difficulty(Enum):
+    """The playable game modes, ordered from easiest to hardest.
+
+    Each member wraps a ``DifficultySettings`` instance, available as ``difficulty.settings``.
+    """
     EASY = DifficultySettings(
             id=0,
             description="Only metropolises from inside Germany with more than 100.000 citizens",
