@@ -1,13 +1,15 @@
 """Main window that connects the game manager to the screens."""
 
 import customtkinter as ctk
-from game_manager import Manager, GameState
+
+from config import FG_COLOR, ICON_DIR
+from game_manager import GameState, Manager
+from models import Coordinates, Difficulty
 from ui.game import GameScreen
-from ui.start import MenuScreen
 from ui.result import ResultScreen
 from ui.screen import Screen
-from config import FG_COLOR, ICON_DIR
-from models import Coordinates, Difficulty
+from ui.start import MenuScreen
+
 
 class App(ctk.CTk):
     """Main application window.
@@ -20,6 +22,7 @@ class App(ctk.CTk):
     Args:
         game_manager: Calculates game logic and holds the current state of the game.
     """
+
     def __init__(self, game_manager: Manager, *args, **kwargs):
         super().__init__(*args, **kwargs, fg_color=FG_COLOR)
         self.game_manager = game_manager
@@ -36,11 +39,25 @@ class App(ctk.CTk):
         self.current_score = ctk.IntVar(value=0)
 
         # setup screens once at startup to avoid rebuilding tiles every time teh screen switches
-        self.menu_screen: MenuScreen = MenuScreen(master=self, start_game=self._start_game)
-        self.game_screen: GameScreen = GameScreen(master=self, rounds=self.round, current_city=self.current_city, current_score=self.current_score, guess_action=self._submit_guess, next_round=self._next_round_waiting)
-        self.result_screen: ResultScreen = ResultScreen(master=self, total_score=self.current_score, play_again=self._play_again, change_difficulty=self.reset)
+        self.menu_screen: MenuScreen = MenuScreen(
+            master=self, start_game=self._start_game
+        )
+        self.game_screen: GameScreen = GameScreen(
+            master=self,
+            rounds=self.round,
+            current_city=self.current_city,
+            current_score=self.current_score,
+            guess_action=self._submit_guess,
+            next_round=self._next_round_waiting,
+        )
+        self.result_screen: ResultScreen = ResultScreen(
+            master=self,
+            total_score=self.current_score,
+            play_again=self._play_again,
+            change_difficulty=self.reset,
+        )
 
-        self.active_screen : Screen = self.menu_screen
+        self.active_screen: Screen = self.menu_screen
 
     def _set_icon(self):
         self.iconbitmap(f"{ICON_DIR}/geodot.ico")
@@ -60,14 +77,16 @@ class App(ctk.CTk):
         # checks whether the active screen is a GameScreen so that the function will run
         # throws an error in case it is a wrong screen
         # this case should never occur when using the code correctly
-        assert isinstance(self.active_screen, GameScreen), "wrong screen is being displayed"
-        
+        assert isinstance(self.active_screen, GameScreen), (
+            "wrong screen is being displayed"
+        )
+
         coordinates = self.active_screen.get_guess_coords()
         if isinstance(coordinates, Coordinates):
             game_state = self.game_manager.submit_guess(coordinates=coordinates)
             self._match_game_state_action(game_state=game_state)
         else:
-            raise RuntimeError("no coordinates in the guess")
+            raise TypeError("no coordinates in the guess")
 
     def _play_again(self):
         """Start a new game with the same difficulty."""
@@ -89,9 +108,14 @@ class App(ctk.CTk):
                 self._show_round_result()
             case GameState.FINISHED:
                 self._switch_screen(screen=self.result_screen)
-                assert isinstance(self.active_screen, ResultScreen), "Switching screens didn't work. Can only access the reset function on a ResultScreen"
+                assert isinstance(self.active_screen, ResultScreen), (
+                    "Switching screens didn't work. Can only access the reset function on a ResultScreen"
+                )
                 self.active_screen.reset(self.game_manager.difficulty)
-                self.active_screen.show_results(results=self.game_manager.results, difficulty=self.game_manager.difficulty)
+                self.active_screen.show_results(
+                    results=self.game_manager.results,
+                    difficulty=self.game_manager.difficulty,
+                )
 
     def _update_to_game_screen(self):
         """Show the game screen and prepare it for a new round."""
@@ -99,7 +123,9 @@ class App(ctk.CTk):
 
         # assert whether the screen is a GameScreen instance in order for the linter to know
         # in reality it will always be a GameScreen
-        assert isinstance(self.active_screen, GameScreen), "something went wrong during screen switch"
+        assert isinstance(self.active_screen, GameScreen), (
+            "something went wrong during screen switch"
+        )
 
         # resetting the map and game screen for a new round
         self.active_screen.start_round(self.game_manager.difficulty)
@@ -113,7 +139,9 @@ class App(ctk.CTk):
 
     def _show_round_result(self):
         """Reveal the result of the current round on the game screen."""
-        assert isinstance(self.active_screen, GameScreen), "wrong screen is being displayed"
+        assert isinstance(self.active_screen, GameScreen), (
+            "wrong screen is being displayed"
+        )
         self.active_screen.show_results(self.game_manager.get_current_guess())
 
         # update the StringVars for each round
@@ -131,7 +159,7 @@ class App(ctk.CTk):
         """
         self._match_game_state_action(self.game_manager.next_round())
 
-    def _switch_screen(self, screen : Screen):
+    def _switch_screen(self, screen: Screen):
         """Hide the active screen and show ``screen`` instead.
 
         Does nothing if ``screen`` is already the active screen.
@@ -140,7 +168,7 @@ class App(ctk.CTk):
             self.active_screen.hide()
             self.active_screen = screen
             self.active_screen.show()
-    
+
     def start(self):
         """Show the start screen and run the event loop until the window closes."""
         self.active_screen.show()

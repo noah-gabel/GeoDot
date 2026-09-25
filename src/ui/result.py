@@ -1,11 +1,28 @@
 """Ending screen with the final score and a recap of every round."""
 
 import customtkinter as ctk
-from ui.screen import Screen
-from models import Guess, Difficulty
+
+from config import (
+    BUTTON_FG_COLOR,
+    BUTTON_HOVER_FG_COLOR,
+    CARD_BORDER_COLOR,
+    CARD_FG_COLOR,
+    CARD_HOVER_FG_COLOR,
+    CARD_SELECT_BORDER_COLOR,
+    FG_COLOR,
+    FONT,
+    HEADING_TEXT_COLOR,
+    MAX_ROUND_SCORE,
+    RESULT_ENTRY_BAR_HEIGHT,
+    TEXT_COLOR,
+    TEXT_DIM_COLOR,
+    TEXT_FAINT_COLOR,
+)
+from models import Difficulty, Guess
+from ui.formatting import format_distance, score_color
 from ui.map_controller import MapController
-from ui.formatting import score_color, format_distance
-from config import FG_COLOR, FONT, HEADING_TEXT_COLOR, TEXT_COLOR, CARD_FG_COLOR, TEXT_FAINT_COLOR, CARD_BORDER_COLOR, TEXT_DIM_COLOR, MAX_ROUND_SCORE, BUTTON_FG_COLOR, BUTTON_HOVER_FG_COLOR, CARD_HOVER_FG_COLOR, CARD_SELECT_BORDER_COLOR, RESULT_ENTRY_BAR_HEIGHT
+from ui.screen import Screen
+
 
 class ResultRow(ctk.CTkFrame):
     """One round in the result list: city, distance, score and a score bar.
@@ -18,13 +35,22 @@ class ResultRow(ctk.CTkFrame):
         border_width: Border width in pixels.
         corner_radius: Corner radius in pixels.
     """
-    def __init__(self, master, index : int,  guess: Guess, on_click, border_width = 2, corner_radius = 12):
+
+    def __init__(
+        self,
+        master,
+        index: int,
+        guess: Guess,
+        on_click,
+        border_width=2,
+        corner_radius=12,
+    ):
         super().__init__(
-            master, 
-            fg_color=CARD_FG_COLOR, 
-            border_width=border_width, 
-            corner_radius=corner_radius, 
-            height=RESULT_ENTRY_BAR_HEIGHT # use a specified height to prevent glitching when hovering
+            master,
+            fg_color=CARD_FG_COLOR,
+            border_width=border_width,
+            corner_radius=corner_radius,
+            height=RESULT_ENTRY_BAR_HEIGHT,  # use a specified height to prevent glitching when hovering
         )
 
         self.index = index
@@ -44,7 +70,7 @@ class ResultRow(ctk.CTkFrame):
             width=24,
             font=(FONT, 14, "bold"),
             text_color=TEXT_FAINT_COLOR,
-            anchor="w"
+            anchor="w",
         ).grid(row=0, column=0, rowspan=2, padx=(16, 10))
 
         ctk.CTkLabel(
@@ -54,7 +80,7 @@ class ResultRow(ctk.CTkFrame):
             text_color=TEXT_COLOR,
             anchor="w",
         ).grid(row=0, column=1, sticky="ew", pady=(10, 0))
- 
+
         ctk.CTkLabel(
             self,
             text=format_distance(self.guess.distance),
@@ -63,7 +89,7 @@ class ResultRow(ctk.CTkFrame):
             anchor="e",
             width=90,
         ).grid(row=0, column=2, sticky="e", padx=10, pady=(10, 0))
- 
+
         ctk.CTkLabel(
             self,
             text=f"{self.guess.score} pts",
@@ -72,7 +98,7 @@ class ResultRow(ctk.CTkFrame):
             anchor="e",
             width=90,
         ).grid(row=0, column=3, sticky="e", padx=(10, 16), pady=(10, 0))
- 
+
         bar = ctk.CTkProgressBar(
             self,
             height=4,
@@ -112,17 +138,18 @@ class ResultScreen(Screen):
 
     Clicking a round shows only that round on the map. Clicking it again
     shows all rounds.
- 
+
     Args:
         master: Parent widget.
         total_score: Tk IntVar holding the final score.
         play_again: Called when the "Play again" button is pressed.
         change_difficulty: Called when the "Change difficulty" button is pressed.
     """
+
     def __init__(self, master, total_score, play_again, change_difficulty):
         super().__init__(master, fg_color=FG_COLOR)
 
-        #define button callbacks
+        # define button callbacks
         self.play_again = play_again
         self.change_difficulty = change_difficulty
 
@@ -133,7 +160,7 @@ class ResultScreen(Screen):
         self.result_row: ResultRow | None = None
 
         self._setup_ui()
-        
+
     def _setup_ui(self):
         self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=2)
@@ -152,14 +179,14 @@ class ResultScreen(Screen):
     def _setup_header(self):
         header = ctk.CTkFrame(self, fg_color="transparent")
         header.grid(row=0, column=1, pady=(20, 12))
- 
+
         ctk.CTkLabel(
             header,
             text="FINAL SCORE",
             font=(FONT, 12, "bold"),
             text_color=HEADING_TEXT_COLOR,
         ).pack()
- 
+
         ctk.CTkLabel(
             header,
             textvariable=self.total_score,
@@ -172,7 +199,13 @@ class ResultScreen(Screen):
         self.map.grid(row=1, column=1, sticky="nswe", padx=60, pady=(0, 12))
 
     def _setup_result_list(self):
-        self.list_frame = ctk.CTkScrollableFrame(self, fg_color="transparent", scrollbar_fg_color="transparent", scrollbar_button_color=FG_COLOR, scrollbar_button_hover_color=FG_COLOR)
+        self.list_frame = ctk.CTkScrollableFrame(
+            self,
+            fg_color="transparent",
+            scrollbar_fg_color="transparent",
+            scrollbar_button_color=FG_COLOR,
+            scrollbar_button_hover_color=FG_COLOR,
+        )
         self.list_frame.grid(row=2, column=1, sticky="nswe", padx=60)
 
         self.list_frame.grid_columnconfigure(0, weight=1)
@@ -239,14 +272,14 @@ class ResultScreen(Screen):
         if widget is self.result_row:
             self.result_row = None
 
-            widget.configure(border_color = CARD_BORDER_COLOR)
+            widget.configure(border_color=CARD_BORDER_COLOR)
             self.map.place_result_city_markers(results=self.results)
         else:
             if self.result_row is not None:
-                self.result_row.configure(border_color = CARD_BORDER_COLOR)
+                self.result_row.configure(border_color=CARD_BORDER_COLOR)
 
             self.result_row = widget
-            widget.configure(border_color = CARD_SELECT_BORDER_COLOR)
+            widget.configure(border_color=CARD_SELECT_BORDER_COLOR)
 
             guess = self.results[index]
             self.map.place_guess_city_combo(guess=guess)
@@ -264,6 +297,10 @@ class ResultScreen(Screen):
         self.map.place_result_city_markers(results=self.results)
 
         for index, guess in enumerate(results):
-            result_frame = ResultRow(self.list_frame, index=index, guess=guess, on_click=self._result_row_clicked)
+            result_frame = ResultRow(
+                self.list_frame,
+                index=index,
+                guess=guess,
+                on_click=self._result_row_clicked,
+            )
             result_frame.grid(row=index, column=0, sticky="ew", pady=4, columnspan=3)
-    

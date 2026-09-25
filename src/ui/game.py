@@ -1,11 +1,24 @@
 """In-game screen with the map, the HUD and the per-round result overlay."""
 
 import customtkinter as ctk
-from config import FG_COLOR, FONT, HEADING_TEXT_COLOR, GUESS_BUTTON_DISABLED_FG_COLOR, GUESS_BUTTON_FG_COLOR, GUESS_BUTTON_HOVER_FG_COLOR, CARD_BORDER_COLOR, TEXT_COLOR, MAX_ROUND_SCORE, COUNTDOWN_TIME
+
+from config import (
+    CARD_BORDER_COLOR,
+    COUNTDOWN_TIME,
+    FG_COLOR,
+    FONT,
+    GUESS_BUTTON_DISABLED_FG_COLOR,
+    GUESS_BUTTON_FG_COLOR,
+    GUESS_BUTTON_HOVER_FG_COLOR,
+    HEADING_TEXT_COLOR,
+    MAX_ROUND_SCORE,
+    TEXT_COLOR,
+)
+from models import Coordinates, Difficulty, Guess
+from ui.formatting import format_distance, score_color
 from ui.map_controller import MapController
 from ui.screen import Screen
-from ui.formatting import score_color, format_distance
-from models import Difficulty, Guess, Coordinates
+
 
 class RoundResultBar(ctk.CTkFrame):
     """Overlay that reveals a round's score and distance, then counts down.
@@ -16,6 +29,7 @@ class RoundResultBar(ctk.CTkFrame):
         master: Parent widget.
         next_round: Called when the countdown has finished.
     """
+
     def __init__(self, master, next_round):
         super().__init__(master, fg_color=FG_COLOR)
 
@@ -31,48 +45,61 @@ class RoundResultBar(ctk.CTkFrame):
         self.grid_columnconfigure(1, weight=1, uniform="column")
         self.grid_columnconfigure(2, weight=1, uniform="column")
 
-        self._setup_stat(column=0, heading="SCORE", text_variable=self.score, anchor="w")
+        self._setup_stat(
+            column=0, heading="SCORE", text_variable=self.score, anchor="w"
+        )
         self._setup_countdown()
-        self._setup_stat(column=2, heading="DISTANCE", text_variable=self.distance, anchor="e")
+        self._setup_stat(
+            column=2, heading="DISTANCE", text_variable=self.distance, anchor="e"
+        )
         self._setup_bar()
 
-    def _setup_stat(self, column: int, heading: str, text_variable: ctk.StringVar | ctk.IntVar, anchor: str):
+    def _setup_stat(
+        self,
+        column: int,
+        heading: str,
+        text_variable: ctk.StringVar | ctk.IntVar,
+        anchor: str,
+    ):
         frame = ctk.CTkFrame(self, fg_color="transparent")
         frame.grid(row=0, column=column, sticky="ew", padx=20, pady=(12, 8))
         frame.grid_columnconfigure(0, weight=1)
 
         ctk.CTkLabel(
-            frame, 
-            text=heading, 
+            frame,
+            text=heading,
             font=(FONT, 10, "bold"),
-            text_color=HEADING_TEXT_COLOR, 
-            anchor=anchor
+            text_color=HEADING_TEXT_COLOR,
+            anchor=anchor,
         ).grid(row=0, column=0, sticky="ew")
 
         label = ctk.CTkLabel(
-            frame, 
-            textvariable=text_variable, 
+            frame,
+            textvariable=text_variable,
             font=(FONT, 22, "bold"),
-            text_color=TEXT_COLOR, 
-            anchor=anchor)
+            text_color=TEXT_COLOR,
+            anchor=anchor,
+        )
         label.grid(row=1, column=0, sticky="ew")
 
     def _setup_countdown(self):
         ctk.CTkLabel(
-            self, 
-            textvariable=self.countdown, 
+            self,
+            textvariable=self.countdown,
             font=(FONT, 40, "bold"),
-            text_color=TEXT_COLOR
+            text_color=TEXT_COLOR,
         ).grid(row=0, column=1, pady=(12, 8))
 
     def _setup_bar(self):
-        self.bar = ctk.CTkProgressBar(self, height=6, corner_radius=3, fg_color=CARD_BORDER_COLOR)
+        self.bar = ctk.CTkProgressBar(
+            self, height=6, corner_radius=3, fg_color=CARD_BORDER_COLOR
+        )
         self.bar.set(0)
         self.bar.grid(row=1, column=0, columnspan=3, sticky="ew", padx=20, pady=(0, 14))
 
-    def show(self, guess:Guess):
+    def show(self, guess: Guess):
         """Animate the result of a round and start the countdown after one second.
- 
+
         Args:
             guess: The result to reveal.
         """
@@ -89,18 +116,23 @@ class RoundResultBar(ctk.CTkFrame):
             current_step: The current animation frame, starting at 0.
             steps: Total number of animation frames.
         """
-        score: int = round(guess.score * current_step / steps )
+        score: int = round(guess.score * current_step / steps)
         self.score.set(score)
 
         distance: float = guess.distance * current_step / steps
         self.distance.set(format_distance(distance))
 
         self.bar.configure(progress_color=score_color(score=score))
-        self.bar.set(value=score/ MAX_ROUND_SCORE)
+        self.bar.set(value=score / MAX_ROUND_SCORE)
 
         if current_step < steps:
             current_step += 1
-            self.after(20, lambda: self._animate(current_step=current_step, guess=guess, steps=steps))
+            self.after(
+                20,
+                lambda: self._animate(
+                    current_step=current_step, guess=guess, steps=steps
+                ),
+            )
 
     def _start_countdown(self):
         """Count down once per second and call ``next_round`` at zero."""
@@ -119,11 +151,12 @@ class RoundResultBar(ctk.CTkFrame):
         self.score.set(0)
         self.distance.set("N/A")
 
+
 class GameScreen(Screen):
     """Screen shown while playing: the map, the HUD and the guess button.
 
     The HUD reads from Tk variables owned by ``App``, so it updates automatically when those change.
- 
+
     Args:
         master: Parent widget.
         rounds: Current round, e.g. ``"3/10"``.
@@ -132,7 +165,16 @@ class GameScreen(Screen):
         guess_action: Called when the player submits a guess.
         next_round: Called when the result countdown has finished.
     """
-    def __init__(self, master, rounds: ctk.StringVar, current_city: ctk.StringVar, current_score : ctk.IntVar, guess_action, next_round):
+
+    def __init__(
+        self,
+        master,
+        rounds: ctk.StringVar,
+        current_city: ctk.StringVar,
+        current_score: ctk.IntVar,
+        guess_action,
+        next_round,
+    ):
         super().__init__(master, fg_color=FG_COLOR)
 
         # define StringVars and IntVars which update according to the parents variables
@@ -162,7 +204,11 @@ class GameScreen(Screen):
         self.result_bar = RoundResultBar(self, next_round=self.next_round)
 
     def _setup_map_widget(self):
-        self.map = MapController(self, disable_guess_button=self._disable_guess_button, enable_guess_button=self._enable_guess_button)
+        self.map = MapController(
+            self,
+            disable_guess_button=self._disable_guess_button,
+            enable_guess_button=self._enable_guess_button,
+        )
         self.map.show_grid(row=1, column=0)
 
     def _setup_top_hud(self):
@@ -181,23 +227,44 @@ class GameScreen(Screen):
         top_bar.grid_columnconfigure(5, weight=1)
         top_bar.grid_columnconfigure(6, weight=1)
 
-        #display current round
+        # display current round
         round_frame = ctk.CTkFrame(top_bar, fg_color="transparent")
         round_frame.grid(row=0, column=1)
-        ctk.CTkLabel(round_frame, text="ROUND", text_color=HEADING_TEXT_COLOR, font=(FONT, 10, "bold")).pack()
-        ctk.CTkLabel(round_frame, textvariable=self.round, font=(FONT, 20, "bold")).pack()
+        ctk.CTkLabel(
+            round_frame,
+            text="ROUND",
+            text_color=HEADING_TEXT_COLOR,
+            font=(FONT, 10, "bold"),
+        ).pack()
+        ctk.CTkLabel(
+            round_frame, textvariable=self.round, font=(FONT, 20, "bold")
+        ).pack()
 
-        #display city name
+        # display city name
         city_frame = ctk.CTkFrame(top_bar, fg_color="transparent")
         city_frame.grid(row=0, column=3)
-        ctk.CTkLabel(city_frame, text="FIND CITY", font=(FONT, 10, "bold"), text_color=HEADING_TEXT_COLOR).pack()
-        ctk.CTkLabel(city_frame, textvariable=self.current_city, font=(FONT, 20, "bold")).pack()
+        ctk.CTkLabel(
+            city_frame,
+            text="FIND CITY",
+            font=(FONT, 10, "bold"),
+            text_color=HEADING_TEXT_COLOR,
+        ).pack()
+        ctk.CTkLabel(
+            city_frame, textvariable=self.current_city, font=(FONT, 20, "bold")
+        ).pack()
 
         # display total score
         score_frame = ctk.CTkFrame(top_bar, fg_color="transparent")
         score_frame.grid(row=0, column=5)
-        ctk.CTkLabel(score_frame, text="TOTAL SCORE", font=(FONT, 10, "bold"), text_color=HEADING_TEXT_COLOR).pack()
-        ctk.CTkLabel(score_frame, textvariable=self.current_score, font=(FONT, 20, "bold")).pack()
+        ctk.CTkLabel(
+            score_frame,
+            text="TOTAL SCORE",
+            font=(FONT, 10, "bold"),
+            text_color=HEADING_TEXT_COLOR,
+        ).pack()
+        ctk.CTkLabel(
+            score_frame, textvariable=self.current_score, font=(FONT, 20, "bold")
+        ).pack()
 
     def _setup_bottom_hud(self):
         bottom_bar = ctk.CTkFrame(self, fg_color=FG_COLOR, height=75)
@@ -213,12 +280,15 @@ class GameScreen(Screen):
             hover_color=GUESS_BUTTON_HOVER_FG_COLOR,
             height=50,
             command=self.guess_action,
-            state="disabled")
+            state="disabled",
+        )
 
         self.guess_button.pack(expand=True)
 
     def _disable_guess_button(self):
-        self.guess_button.configure(state="disabled", fg_color=GUESS_BUTTON_DISABLED_FG_COLOR)
+        self.guess_button.configure(
+            state="disabled", fg_color=GUESS_BUTTON_DISABLED_FG_COLOR
+        )
 
     def _enable_guess_button(self):
         self.guess_button.configure(state="normal", fg_color=GUESS_BUTTON_FG_COLOR)
@@ -252,7 +322,7 @@ class GameScreen(Screen):
 
     def show_results(self, guess: Guess):
         """Show the round's result on the map and open the result overlay.
- 
+
         Args:
             guess: The result of the current round.
         """

@@ -1,9 +1,29 @@
 """Start screen where the player picks a difficulty."""
 
 import customtkinter as ctk
-from config import (FG_COLOR, FONT, INTRO_HEADING_ACCENT_COLOR, TEXT_COLOR, TEXT_DIM_COLOR, HEADING_TEXT_COLOR, CARD_BORDER_COLOR, CARD_FG_COLOR, CARD_INNER_PADX, CARD_WIDTH, UNSELECTED_DIFFICULTY_COLOR, CARD_HOVER_FG_COLOR, CARD_SELECT_BORDER_COLOR, START_BUTTON_DISABLED_FG_COLOR, START_BUTTON_FG_COLOR, START_BUTTON_HOVER_FG_COLOR, CARD_HEIGHT)
+
+from config import (
+    CARD_BORDER_COLOR,
+    CARD_FG_COLOR,
+    CARD_HEIGHT,
+    CARD_HOVER_FG_COLOR,
+    CARD_INNER_PADX,
+    CARD_SELECT_BORDER_COLOR,
+    CARD_WIDTH,
+    FG_COLOR,
+    FONT,
+    HEADING_TEXT_COLOR,
+    INTRO_HEADING_ACCENT_COLOR,
+    START_BUTTON_DISABLED_FG_COLOR,
+    START_BUTTON_FG_COLOR,
+    START_BUTTON_HOVER_FG_COLOR,
+    TEXT_COLOR,
+    TEXT_DIM_COLOR,
+    UNSELECTED_DIFFICULTY_COLOR,
+)
 from models import Difficulty
 from ui.screen import Screen
+
 
 class DifficultyCard(ctk.CTkFrame):
     """Clickable card that describes one difficulty.
@@ -15,8 +35,24 @@ class DifficultyCard(ctk.CTkFrame):
         border_width: Border width in pixels.
         corner_radius: Corner radius in pixels.
     """
-    def __init__(self, master, difficulty: Difficulty, on_click_callback, border_width=2, corner_radius=20):
-        super().__init__(master=master, fg_color=CARD_FG_COLOR, border_color=CARD_BORDER_COLOR, border_width=border_width, corner_radius=corner_radius, width=CARD_WIDTH, height=CARD_HEIGHT)
+
+    def __init__(
+        self,
+        master,
+        difficulty: Difficulty,
+        on_click_callback,
+        border_width=2,
+        corner_radius=20,
+    ):
+        super().__init__(
+            master=master,
+            fg_color=CARD_FG_COLOR,
+            border_color=CARD_BORDER_COLOR,
+            border_width=border_width,
+            corner_radius=corner_radius,
+            width=CARD_WIDTH,
+            height=CARD_HEIGHT,
+        )
 
         self.difficulty = difficulty
         self.on_click_callback = on_click_callback
@@ -45,11 +81,15 @@ class DifficultyCard(ctk.CTkFrame):
         bar_frame.grid_rowconfigure(0, weight=1)
 
         # generate the difficulty bar to change the amount of coloured spaces for the difficulty level
-        scope_color = self.difficulty.settings.region.color # set the default to the difficulties color
+        scope_color = (
+            self.difficulty.settings.region.color
+        )  # set the default to the difficulties color
         for index in range(len(Difficulty)):
             if index >= self.difficulty.settings.id + 1:
                 scope_color = UNSELECTED_DIFFICULTY_COLOR
-            ctk.CTkFrame(bar_frame, corner_radius=10, fg_color=scope_color, height=10).grid(row=0, column=index, sticky="ew", padx=3)    
+            ctk.CTkFrame(
+                bar_frame, corner_radius=10, fg_color=scope_color, height=10
+            ).grid(row=0, column=index, sticky="ew", padx=3)
 
     def _setup_text(self):
         ctk.CTkLabel(
@@ -75,7 +115,7 @@ class DifficultyCard(ctk.CTkFrame):
             text_color=TEXT_DIM_COLOR,
             anchor="nw",
             justify="left",
-            wraplength= CARD_WIDTH - 2 * CARD_INNER_PADX
+            wraplength=CARD_WIDTH - 2 * CARD_INNER_PADX,
         ).grid(row=3, column=0, sticky="new", padx=CARD_INNER_PADX, pady=4)
 
     def _bind_actions_recursive(self, widget):
@@ -106,6 +146,7 @@ class DifficultyCard(ctk.CTkFrame):
         self.configure(fg_color=CARD_FG_COLOR)
         self.configure(cursor="")
 
+
 class MenuScreen(Screen):
     """Start screen where the player picks a difficulty and starts a game.
 
@@ -113,6 +154,7 @@ class MenuScreen(Screen):
         master: Parent widget.
         start_game: Called with the selected ``Difficulty`` when teh START button is pressed.
     """
+
     def __init__(self, master, start_game):
         super().__init__(master, fg_color=FG_COLOR)
 
@@ -139,34 +181,30 @@ class MenuScreen(Screen):
 
         # separate the title in order to color only the Dot part
         ctk.CTkLabel(
-            title, 
-            text="Geo", 
-            font=(FONT, 52, "bold"), 
-            text_color=TEXT_COLOR, 
-            padx=0 
+            title, text="Geo", font=(FONT, 52, "bold"), text_color=TEXT_COLOR, padx=0
         ).pack(side="left")
         ctk.CTkLabel(
-            title, 
-            text="Dot", 
-            font=(FONT, 52, "bold"), 
-            text_color=INTRO_HEADING_ACCENT_COLOR, 
-            padx=0, 
+            title,
+            text="Dot",
+            font=(FONT, 52, "bold"),
+            text_color=INTRO_HEADING_ACCENT_COLOR,
+            padx=0,
         ).pack(side="left")
 
         # description
-        ctk.CTkLabel( 
-            self, 
-            text="place your marker as close as you can to the asked city", 
-            font=(FONT, 15), 
-            text_color=TEXT_DIM_COLOR 
+        ctk.CTkLabel(
+            self,
+            text="place your marker as close as you can to the asked city",
+            font=(FONT, 15),
+            text_color=TEXT_DIM_COLOR,
         ).grid(row=2, column=0, pady=(0, 40))
 
         # difficulty cards heading
         ctk.CTkLabel(
-            self, 
-            text="DIFFICULTY", 
+            self,
+            text="DIFFICULTY",
             font=(FONT, 20, "bold"),
-            text_color=HEADING_TEXT_COLOR 
+            text_color=HEADING_TEXT_COLOR,
         ).grid(row=3, column=0, pady=(0, 20))
 
     def _setup_difficulty_cards(self):
@@ -176,21 +214,29 @@ class MenuScreen(Screen):
         card_frame.grid_rowconfigure(0, weight=1)
         card_frame.grid_columnconfigure(len(Difficulty) - 1, weight=0)
 
-        for index, difficulty, in enumerate(Difficulty):
-            DifficultyCard(card_frame, difficulty=difficulty, on_click_callback=self._on_card_select).grid(row=0, column=index, padx=10)
+        for (
+            index,
+            difficulty,
+        ) in enumerate(Difficulty):
+            DifficultyCard(
+                card_frame,
+                difficulty=difficulty,
+                on_click_callback=self._on_card_select,
+            ).grid(row=0, column=index, padx=10)
 
     def _setup_start_button(self):
         self.start_button = ctk.CTkButton(
-            self, 
-            corner_radius=30, 
+            self,
+            corner_radius=30,
             text="START",
-            font= (FONT, 20, "bold"),
+            font=(FONT, 20, "bold"),
             height=60,
             width=350,
             state="disabled",
             fg_color=START_BUTTON_DISABLED_FG_COLOR,
             hover_color=START_BUTTON_HOVER_FG_COLOR,
-            command=lambda: self.start_game(self.difficulty))
+            command=lambda: self.start_game(self.difficulty),
+        )
 
         self.start_button.grid(row=5, column=0, pady=40)
 
@@ -205,16 +251,15 @@ class MenuScreen(Screen):
         clicked_card.configure(border_color=CARD_SELECT_BORDER_COLOR)
         self.difficulty = clicked_card.difficulty
 
-        #enable the starting button as soon as a card is selected
+        # enable the starting button as soon as a card is selected
         self.start_button.configure(fg_color=START_BUTTON_FG_COLOR)
         self.start_button.configure(state="normal")
 
     def reset(self):
         """Clear the selected difficulty and disable the start button."""
         self.start_button.configure(state="disabled")
-        self.start_button.configure(fg_color = START_BUTTON_DISABLED_FG_COLOR)
+        self.start_button.configure(fg_color=START_BUTTON_DISABLED_FG_COLOR)
 
         for card in self.cards:
             card.configure(border_color=CARD_BORDER_COLOR)
         self.difficulty = None
-        
